@@ -17,7 +17,7 @@ Create YES/NO markets, bet XLM, resolve based on real-world facts, claim winning
 - Frontend: React 19 · TypeScript · Vite · Tailwind CSS v4
 - Wallet: Freighter
 - CI/CD: GitHub Actions
-- Hosting: Vercel
+- Hosting: [Vercel](https://frontend-ashy-chi-87.vercel.app)
 
 ## Quick Start
 
