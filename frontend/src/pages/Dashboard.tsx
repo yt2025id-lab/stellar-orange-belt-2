@@ -16,6 +16,7 @@ function scvAddr(a: string): xdr.ScVal { return new Address(a).toScVal(); }
 function scvStr(s: string): xdr.ScVal { return xdr.ScVal.scvString(s); }
 function scvI128(n: bigint): xdr.ScVal { return xdr.ScVal.scvI128(new xdr.Int128Parts({ hi: new xdr.Int64(BigInt.asIntN(64, n >> 64n)), lo: new xdr.Uint64(BigInt.asUintN(64, n)) })); }
 function scvU32(n: number): xdr.ScVal { return xdr.ScVal.scvU32(n); }
+function scvU64(n: bigint): xdr.ScVal { return xdr.ScVal.scvU64(new xdr.Uint64(n)); }
 function scvBool(b: boolean): xdr.ScVal { return xdr.ScVal.scvBool(b); }
 function f(a: string) { return `${a.slice(0, 6)}…${a.slice(-4)}`; }
 
@@ -118,16 +119,16 @@ export default function Dashboard() {
     try {
       const acct = await server.loadAccount(addr);
       const raw = new TransactionBuilder(acct, { fee: "100000", networkPassphrase: Networks.TESTNET })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU32(dl)] }))
+        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU64(BigInt(dl))] }))
         .setTimeout(300).build();
       const sim = await rpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { minResourceFee: string; transactionData: string; results?: Array<{ auth?: string[] }> };
       const fee = (parseInt(raw.fee, 10) + parseInt(sim.minResourceFee || "0", 10)).toString();
       const sd = xdr.SorobanTransactionData.fromXDR(sim.transactionData, "base64");
       const fresh = await server.loadAccount(addr);
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU32(dl)] }))
+        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU64(BigInt(dl))] }))
         .setTimeout(300).build();
-      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, accountToSign: addr });
       const send = await rpc("sendTransaction", { transaction: signedXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
@@ -156,7 +157,7 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "place_bet", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(side), scvI128(amount)] }))
         .setTimeout(300).build();
-      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, accountToSign: addr });
       const send = await rpc("sendTransaction", { transaction: signedXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
@@ -182,7 +183,7 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "resolve_market", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(outcome)] }))
         .setTimeout(300).build();
-      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, accountToSign: addr });
       const send = await rpc("sendTransaction", { transaction: signedXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
@@ -207,7 +208,7 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "claim_winnings", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId)] }))
         .setTimeout(300).build();
-      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const signedXdr = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, accountToSign: addr });
       const send = await rpc("sendTransaction", { transaction: signedXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
