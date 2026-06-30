@@ -1,0 +1,43 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          target: wasm32-unknown-unknown
+      - run: cargo test --verbose
+
+  contract-build:
+    needs: contract-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          target: wasm32-unknown-unknown
+      - name: Install wasm-opt
+        run: sudo apt-get install -y binaryen
+      - run: cargo build --release --target wasm32-unknown-unknown
+      - run: wasm-opt -Os --enable-bulk-memory --enable-sign-ext -o prediction_market.wasm target/wasm32-unknown-unknown/release/prediction_market.wasm
+      - uses: actions/upload-artifact@v5
+        with:
+          name: prediction-market-wasm
+          path: prediction_market.wasm
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - run: cd frontend && npm install && npm run build
