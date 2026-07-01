@@ -131,14 +131,14 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU64(BigInt(dl))] }))
         .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
       const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
       setQuestion(""); setDeadline("");
       setStatus({ type: "success", msg: "Market created!", txHash: send.hash });
       loadMarkets();
-    } catch (e: unknown) { setStatus({ type: "error", msg: (e as Error).message }); }
+    } catch (e: unknown) { setStatus({ type: "error", msg: e instanceof Error ? e.message : String(e) }); }
     finally { setCreating(false); }
   };
 
@@ -160,7 +160,7 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "place_bet", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(side), scvI128(amount)] }))
         .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
       const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
@@ -186,7 +186,7 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "resolve_market", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(outcome)] }))
         .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
       const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
@@ -211,7 +211,7 @@ export default function Dashboard() {
       const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "claim_winnings", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId)] }))
         .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: addr });
+      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
       const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
       if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
       for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
