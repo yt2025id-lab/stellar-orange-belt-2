@@ -12,7 +12,10 @@ const EXPLORER = "https://stellar.expert/explorer/testnet";
 const server = new Horizon.Server(HORIZON_URL);
 type TxState = "idle" | "pending" | "success" | "fail";
 
-function scvAddr(a: string): xdr.ScVal { return new Address(a).toScVal(); }
+function scvAddr(a: string): xdr.ScVal {
+  if (!a || a.length !== 56) throw new Error(`Invalid address: "${a?.slice(0, 12)}…" (len=${a?.length})`);
+  return new Address(a).toScVal();
+}
 function scvStr(s: string): xdr.ScVal { return xdr.ScVal.scvString(s); }
 function scvI128(n: bigint): xdr.ScVal { return xdr.ScVal.scvI128(new xdr.Int128Parts({ hi: new xdr.Int64(BigInt.asIntN(64, n >> 64n)), lo: new xdr.Uint64(BigInt.asUintN(64, n)) })); }
 function scvU32(n: number): xdr.ScVal { return xdr.ScVal.scvU32(n); }
