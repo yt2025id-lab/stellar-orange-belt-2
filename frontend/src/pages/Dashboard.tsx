@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { isConnected, getAddress, requestAccess, signTransaction } from "@stellar/freighter-api";
-import { Horizon, TransactionBuilder, Networks, xdr, Keypair, Operation, Address } from "stellar-sdk";
+import { Horizon, TransactionBuilder, Networks, xdr, Keypair, Operation, Address, Account } from "stellar-sdk";
 
 const HORIZON_URL = import.meta.env.VITE_HORIZON_URL || "https://horizon-testnet.stellar.org";
 const RPC_URL = import.meta.env.VITE_RPC_URL || "https://soroban-testnet.stellar.org";
@@ -13,7 +13,7 @@ const server = new Horizon.Server(HORIZON_URL);
 type TxState = "idle" | "pending" | "success" | "fail";
 
 function scvAddr(a: string): xdr.ScVal {
-  if (!a || a.length !== 56) throw new Error(`Invalid address: "${a?.slice(0, 12)}…" (len=${a?.length})`);
+  if (!a || a.length !== 56) throw new Error(`Invalid address: "${a?.slice(0, 12)}..." (len=${a?.length})`);
   return new Address(a).toScVal();
 }
 function scvStr(s: string): xdr.ScVal { return xdr.ScVal.scvString(s); }
@@ -21,7 +21,7 @@ function scvI128(n: bigint): xdr.ScVal { return xdr.ScVal.scvI128(new xdr.Int128
 function scvU32(n: number): xdr.ScVal { return xdr.ScVal.scvU32(n); }
 function scvU64(n: bigint): xdr.ScVal { return xdr.ScVal.scvU64(new xdr.Uint64(n)); }
 function scvBool(b: boolean): xdr.ScVal { return xdr.ScVal.scvBool(b); }
-function f(a: string) { return `${a.slice(0, 6)}…${a.slice(-4)}`; }
+function f(a: string) { return `${a.slice(0, 6)}...${a.slice(-4)}`; }
 
 interface Bet { user: string; amount: number; claimed: boolean; }
 interface Market {
@@ -30,10 +30,111 @@ interface Market {
   yes_pool: number; no_pool: number; yes_bets: Bet[]; no_bets: Bet[];
 }
 
-async function rpc(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const r = await fetch(RPC_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
-  const d = await r.json(); if (d.error) throw new Error(d.error.message ?? JSON.stringify(d.error));
-  return d.result as Record<string, unknown>;
+async function callRpc(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 15_000);
+  try {
+    const r = await fetch(RPC_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }), signal: ctrl.signal });
+    const d = await r.json(); if (d.error) throw new Error(d.error.message ?? JSON.stringify(d.error));
+    return d.result as Record<string, unknown>;
+  } finally { clearTimeout(t); }
+}
+
+async function waitForTx(hash: string): Promise<{ status: "SUCCESS" | "FAILED" | "TIMEOUT"; error?: string }> {
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 1500));
+    try {
+      const st = await callRpc("getTransaction", { hash }) as { status: string };
+      if (st.status === "SUCCESS") return { status: "SUCCESS" };
+      if (st.status === "FAILED") {
+        return { status: "FAILED", error: "Transaction failed on-chain" };
+      }
+    } catch { /* poll error — keep going */ }
+  }
+  return { status: "TIMEOUT", error: "TX taking longer than expected" };
+}
+
+async function simSignSend(
+  func: string,
+  args: xdr.ScVal[],
+  userAddr: string,
+  onConfirm: () => void,
+): Promise<string> {
+  console.log("[simSignSend]", func, "with", args.length, "args");
+
+  const fresh = await server.loadAccount(userAddr);
+  const raw = new TransactionBuilder(fresh, { fee: "100000", networkPassphrase: Networks.TESTNET })
+    .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: func, args }))
+    .setTimeout(300).build();
+
+  console.log("[simSignSend] simulating...");
+  const sim = await callRpc("simulateTransaction", { transaction: raw.toXDR() }) as Record<string, unknown>;
+  console.log("[simSignSend] sim keys:", Object.keys(sim));
+
+  if (sim.error) throw new Error(`Simulation RPC error: ${sim.error as string}`);
+  if ((sim as { result?: { error?: string } }).result?.error) {
+    throw new Error(`Simulation failed: ${(sim as { result: { error: string } }).result.error}`);
+  }
+
+  const results = sim.results as Array<{ auth?: string[]; xdr?: string }> | undefined;
+  const minResourceFee = sim.minResourceFee as string | undefined;
+  const transactionData = sim.transactionData as string | undefined;
+
+  if (!results?.[0]) throw new Error("Simulation returned no results");
+
+  const authEntries: xdr.SorobanAuthorizationEntry[] = [];
+  for (const entry of (results[0].auth || [])) {
+    try {
+      authEntries.push(xdr.SorobanAuthorizationEntry.fromXDR(entry, "base64"));
+    } catch (e: unknown) {
+      console.log("[simSignSend] auth entry parse failed:", (e as Error).message);
+    }
+  }
+  console.log("[simSignSend] auth entries:", authEntries.length);
+
+  let sorobanData: xdr.SorobanTransactionData;
+  try {
+    sorobanData = xdr.SorobanTransactionData.fromXDR(transactionData!, "base64");
+    console.log("[simSignSend] parsed transactionData OK");
+  } catch (e: unknown) {
+    const msg = (e as Error).message ?? "";
+    console.log("[simSignSend] transactionData parse failed:", msg, "- using fallback");
+    sorobanData = new xdr.SorobanTransactionData({
+      resources: new xdr.SorobanResources({
+        footprint: new xdr.LedgerFootprint({ readOnly: [], readWrite: [] }),
+        instructions: 0, readBytes: 0, writeBytes: 0,
+      }),
+      ext: new (xdr.ExtensionPoint as unknown as new (v: number) => xdr.ExtensionPoint)(0),
+      resourceFee: new xdr.Int64(parseInt(minResourceFee || "0")),
+    });
+  }
+
+  const fee = (100000 + parseInt(minResourceFee || "0")).toString();
+  const finalAcct = await server.loadAccount(userAddr);
+  const rawOp0 = raw.operations[0] as { func: xdr.HostFunction; auth: xdr.SorobanAuthorizationEntry[] };
+  const tx = new TransactionBuilder(finalAcct, { fee, networkPassphrase: Networks.TESTNET, sorobanData })
+    .addOperation(Operation.invokeHostFunction({
+      func: rawOp0.func,
+      auth: authEntries,
+    }))
+    .setTimeout(300).build();
+
+  console.log("[simSignSend] signing with Freighter...");
+  onConfirm();
+  const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET, address: userAddr });
+
+  console.log("[simSignSend] sending TX...");
+  const send = await callRpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; status: string; errorResult?: string };
+  if (send.errorResult) throw new Error(`Send failed: ${JSON.stringify(send.errorResult).slice(0, 200)}`);
+  if (send.status === "ERROR") throw new Error("Transaction submission error");
+
+  console.log("[simSignSend] waiting for TX", send.hash);
+  const result = await waitForTx(send.hash);
+  console.log("[simSignSend] TX result:", result.status);
+  if (result.status === "FAILED") throw new Error(result.error ?? "Transaction failed on-chain");
+  if (result.status === "TIMEOUT") throw new Error("TX taking longer than expected, check explorer");
+
+  return send.hash;
 }
 
 function parseBet(m: any): Bet | null {
@@ -42,7 +143,14 @@ function parseBet(m: any): Bet | null {
     try { const k = m[i].key().sym()?.toString() || ""; if (!k) continue; const v = m[i].val(); if (v) fields[k] = v; } catch {}
   }
   const addr = (s: xdr.ScVal | undefined) => { try { return s ? Address.fromScVal(s).toString() : ""; } catch { return ""; } };
-  return { user: addr(fields.user), amount: Number(fields.amount?.i128()?.lo ?? 0n), claimed: (fields.claimed as any)?.bool?.() ?? ((fields.claimed as any)?.u32?.() ?? 0) !== 0 };
+  return { user: addr(fields.user), amount: Number(fields.amount?.i128()?.lo()?.toString() ?? "0"), claimed: parseClaimed(fields.claimed) };
+}
+
+function parseClaimed(v: xdr.ScVal | undefined): boolean {
+  if (!v) return false;
+  try { const b = (v as any)?.bool?.(); if (b !== undefined) return b; } catch {}
+  try { const u = (v as any)?.u32?.(); if (u !== undefined) return u !== 0; } catch {}
+  return false;
 }
 
 function parseMarket(entries: any[], id: number): Market | null {
@@ -52,14 +160,13 @@ function parseMarket(entries: any[], id: number): Market | null {
   }
   const addr = (s: xdr.ScVal | undefined) => { try { return s ? Address.fromScVal(s).toString() : ""; } catch { return ""; } };
   const yesBets: Bet[] = []; const noBets: Bet[] = [];
-  if (fields.yes_bets) { let v; try { v = fields.yes_bets.vec(); } catch {} if (v) for (const b of v) { let mv; try { mv = b.map(); } catch {} if (mv) { const pb = parseBet(mv); if (pb) yesBets.push(pb); } } }
   if (fields.no_bets) { let v; try { v = fields.no_bets.vec(); } catch {} if (v) for (const b of v) { let mv; try { mv = b.map(); } catch {} if (mv) { const pb = parseBet(mv); if (pb) noBets.push(pb); } } }
   return {
     id, creator: addr(fields.creator), question: fields.question?.str()?.toString() ?? "",
     deadline: Number(fields.deadline?.u64()?.toString() ?? "0"),
     resolved: ((fields.resolved as any)?.bool?.() ?? false), outcome: ((fields.outcome as any)?.bool?.() ?? false),
     resolved_at: Number(fields.resolved_at?.u64()?.toString() ?? "0"),
-    yes_pool: Number(fields.yes_pool?.i128()?.lo ?? 0n), no_pool: Number(fields.no_pool?.i128()?.lo ?? 0n),
+    yes_pool: Number(fields.yes_pool?.i128()?.lo()?.toString() ?? "0"), no_pool: Number(fields.no_pool?.i128()?.lo()?.toString() ?? "0"),
     yes_bets: yesBets, no_bets: noBets,
   };
 }
@@ -67,6 +174,7 @@ function parseMarket(entries: any[], id: number): Market | null {
 export default function Dashboard() {
   const [addr, setAddr] = useState<string | null>(null);
   const [walletName, setWalletName] = useState("");
+  const [balance, setBalance] = useState<string | null>(null);
   const [showWm, setShowWm] = useState(false);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(false);
@@ -81,34 +189,64 @@ export default function Dashboard() {
   // Bet form
   const [betMarket, setBetMarket] = useState<number | null>(null);
   const [betAmount, setBetAmount] = useState("");
+  const [betSide, setBetSide] = useState<boolean>(true);
 
-  useEffect(() => { isConnected().then(r => { if (r.isConnected) getAddress().then(({ address: a }) => { setAddr(a); setWalletName("Freighter"); }); }).catch(() => {}); }, []);
+  const reloadWithDelay = () => { setTimeout(() => loadMarkets(), 2000); };
+
+  const fetchBalance = async (a: string) => {
+    try {
+      const acc = await server.loadAccount(a);
+      const xlm = acc.balances.find((b: { asset_type: string }) => b.asset_type === "native");
+      const bl = parseFloat(xlm?.balance ?? "0");
+      setBalance(bl.toLocaleString("de-DE", { maximumFractionDigits: 3, minimumFractionDigits: 0 }));
+    } catch { setBalance("0.0000"); }
+  };
+
+  const doConnect = async (a: string) => {
+    setAddr(a); setWalletName("Freighter");
+    await fetchBalance(a);
+    await loadMarkets();
+  };
+
+  useEffect(() => { isConnected().then(r => { if (r.isConnected) getAddress().then(({ address: a }) => doConnect(a)); }).catch(() => {}); }, []);
 
   const connectFreighter = async () => {
     const { address: a, error: e } = await requestAccess();
     if (e || !a) { setStatus({ type: "error", msg: "Install Freighter extension." }); return; }
-    setAddr(a); setWalletName("Freighter"); setShowWm(false);
+    setShowWm(false);
+    await doConnect(a);
   };
 
   const loadMarkets = async () => {
     setLoading(true); setStatus(null);
     try {
-      const acct = new (require("stellar-sdk").Account)((await isConnected()).isConnected ? (await getAddress()).address : Keypair.random().publicKey(), "0");
+      const pk = addr || Keypair.random().publicKey();
+      const acct = new Account(pk, "0");
       const raw = new TransactionBuilder(acct, { fee: "100", networkPassphrase: Networks.TESTNET })
         .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "get_markets", args: [] }))
         .setTimeout(300).build();
-      const sim = await rpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { results?: Array<{ xdr?: string }>; error?: string };
+      const sim = await callRpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { results?: Array<{ xdr?: string }>; error?: string };
       if (!sim.results?.[0]?.xdr) { setMarkets([]); setStatus({ type: "success", msg: "No markets yet" }); return; }
-      const rv = xdr.ScVal.fromXDR(sim.results[0].xdr, "base64");
-      const vec = rv.vec();
-      if (!vec) { setMarkets([]); return; }
-      const parsed: Market[] = [];
-      for (let i = 0; i < vec.length; i++) {
-        const m = vec[i].map(); if (!m) continue;
-        const market = parseMarket(m, i); if (market) parsed.push(market);
+      let rv: xdr.ScVal;
+      try { rv = xdr.ScVal.fromXDR(sim.results[0].xdr, "base64"); } catch {
+        setMarkets([]); setStatus({ type: "error", msg: "Failed to parse market data (XDR mismatch — SDK outdated)" }); return;
       }
-      setMarkets(parsed);
-      setStatus({ type: "success", msg: `${parsed.length} market${parsed.length !== 1 ? "s" : ""} loaded` });
+      try {
+        const vec = rv.vec();
+        if (!vec) { setMarkets([]); return; }
+        const parsed: Market[] = [];
+        for (let i = 0; i < vec.length; i++) {
+          let m;
+          try { m = vec[i].map(); } catch (e) { console.log("[loadMarkets] .map() fail on index", i, (e as Error).message); continue; }
+          if (!m) continue;
+          const market = parseMarket(m, i); if (market) parsed.push(market);
+        }
+        setMarkets(parsed);
+        setStatus({ type: "success", msg: `${parsed.length} market${parsed.length !== 1 ? "s" : ""} loaded` });
+      } catch (e: unknown) {
+        console.error("[loadMarkets] parse failed:", (e as Error).message, (e as Error).stack);
+        setMarkets([]); setStatus({ type: "error", msg: "Markets exist but failed to parse (XDR mismatch)" });
+      }
     } catch (e: unknown) { setStatus({ type: "error", msg: (e as Error).message }); }
     finally { setLoading(false); }
   };
@@ -120,54 +258,26 @@ export default function Dashboard() {
 
     setCreating(true); setStatus(null);
     try {
-      const acct = await server.loadAccount(addr);
-      const raw = new TransactionBuilder(acct, { fee: "100000", networkPassphrase: Networks.TESTNET })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU64(BigInt(dl))] }))
-        .setTimeout(300).build();
-      const sim = await rpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { minResourceFee: string; transactionData: string; results?: Array<{ auth?: string[] }> };
-      const fee = (parseInt(raw.fee, 10) + parseInt(sim.minResourceFee || "0", 10)).toString();
-      const sd = xdr.SorobanTransactionData.fromXDR(sim.transactionData, "base64");
-      const fresh = await server.loadAccount(addr);
-      const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "create_market", args: [scvAddr(addr), scvStr(question), scvU64(BigInt(dl))] }))
-        .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
-      const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
-      if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
-      for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
+      const hash = await simSignSend("create_market", [scvAddr(addr), scvStr(question), scvU64(BigInt(dl))], addr, () => setStatus({ type: "info", msg: "Confirming..." }));
       setQuestion(""); setDeadline("");
-      setStatus({ type: "success", msg: "Market created!", txHash: send.hash });
-      loadMarkets();
+      setStatus({ type: "success", msg: "Market created!", txHash: hash });
+      reloadWithDelay();
     } catch (e: unknown) { setStatus({ type: "error", msg: e instanceof Error ? e.message : String(e) }); }
     finally { setCreating(false); }
   };
 
   const placeBet = async (marketId: number, side: boolean) => {
-    if (!addr || !betAmount) return;
-    const amount = BigInt(betAmount);
-    if (amount <= 0) return;
+    if (!addr || !betAmount || parseFloat(betAmount) <= 0) return;
+    const xlm = parseFloat(betAmount);
+    const amount = BigInt(Math.floor(xlm * 10_000_000));
 
     setPayTx("pending"); setStatus(null);
     try {
-      const acct = await server.loadAccount(addr);
-      const raw = new TransactionBuilder(acct, { fee: "100000", networkPassphrase: Networks.TESTNET })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "place_bet", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(side), scvI128(amount)] }))
-        .setTimeout(300).build();
-      const sim = await rpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { minResourceFee: string; transactionData: string };
-      const fee = (parseInt(raw.fee, 10) + parseInt(sim.minResourceFee || "0", 10)).toString();
-      const sd = xdr.SorobanTransactionData.fromXDR(sim.transactionData, "base64");
-      const fresh = await server.loadAccount(addr);
-      const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "place_bet", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(side), scvI128(amount)] }))
-        .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
-      const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
-      if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
-      for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
+      const hash = await simSignSend("place_bet", [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(side), scvI128(amount)], addr, () => setStatus({ type: "info", msg: "Confirming..." }));
       setBetAmount(""); setBetMarket(null);
-      setStatus({ type: "success", msg: `Bet ${side ? "YES" : "NO"} ${amount} stroops!`, txHash: send.hash });
+      setStatus({ type: "success", msg: `Bet ${side ? "YES" : "NO"} ${xlm} XLM!`, txHash: hash });
       setPayTx("success"); setTimeout(() => setPayTx("idle"), 2000);
-      loadMarkets();
+      reloadWithDelay();
     } catch (e: unknown) { setPayTx("fail"); setStatus({ type: "error", msg: (e as Error).message }); }
   };
 
@@ -175,24 +285,10 @@ export default function Dashboard() {
     if (!addr) return;
     setPayTx("pending"); setStatus(null);
     try {
-      const acct = await server.loadAccount(addr);
-      const raw = new TransactionBuilder(acct, { fee: "100000", networkPassphrase: Networks.TESTNET })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "resolve_market", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(outcome)] }))
-        .setTimeout(300).build();
-      const sim = await rpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { minResourceFee: string; transactionData: string };
-      const fee = (parseInt(raw.fee, 10) + parseInt(sim.minResourceFee || "0", 10)).toString();
-      const sd = xdr.SorobanTransactionData.fromXDR(sim.transactionData, "base64");
-      const fresh = await server.loadAccount(addr);
-      const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "resolve_market", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(outcome)] }))
-        .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
-      const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
-      if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
-      for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
-      setStatus({ type: "success", msg: `Resolved as ${outcome ? "YES" : "NO"}!`, txHash: send.hash });
+      const hash = await simSignSend("resolve_market", [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId), scvBool(outcome)], addr, () => setStatus({ type: "info", msg: "Confirming..." }));
+      setStatus({ type: "success", msg: `Resolved as ${outcome ? "YES" : "NO"}!`, txHash: hash });
       setPayTx("success"); setTimeout(() => setPayTx("idle"), 2000);
-      loadMarkets();
+      reloadWithDelay();
     } catch (e: unknown) { setPayTx("fail"); setStatus({ type: "error", msg: (e as Error).message }); }
   };
 
@@ -200,24 +296,10 @@ export default function Dashboard() {
     if (!addr) return;
     setPayTx("pending"); setStatus(null);
     try {
-      const acct = await server.loadAccount(addr);
-      const raw = new TransactionBuilder(acct, { fee: "100000", networkPassphrase: Networks.TESTNET })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "claim_winnings", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId)] }))
-        .setTimeout(300).build();
-      const sim = await rpc("simulateTransaction", { transaction: raw.toXDR() }) as unknown as { minResourceFee: string; transactionData: string };
-      const fee = (parseInt(raw.fee, 10) + parseInt(sim.minResourceFee || "0", 10)).toString();
-      const sd = xdr.SorobanTransactionData.fromXDR(sim.transactionData, "base64");
-      const fresh = await server.loadAccount(addr);
-      const tx = new TransactionBuilder(fresh, { fee, networkPassphrase: Networks.TESTNET, sorobanData: sd })
-        .addOperation(Operation.invokeContractFunction({ contract: CONTRACT_ID, function: "claim_winnings", args: [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId)] }))
-        .setTimeout(300).build();
-      const { signedTxXdr } = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET });
-      const send = await rpc("sendTransaction", { transaction: signedTxXdr }) as unknown as { hash: string; errorResult?: string };
-      if (send.errorResult) throw new Error(`TX failed: ${send.errorResult}`);
-      for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1000)); const st = await rpc("getTransaction", { hash: send.hash }) as { status: string }; if (st.status === "SUCCESS") break; }
-      setStatus({ type: "success", msg: "Winnings claimed!", txHash: send.hash });
+      const hash = await simSignSend("claim_winnings", [scvAddr(addr), scvAddr(NATIVE_TOKEN), scvU32(marketId)], addr, () => setStatus({ type: "info", msg: "Confirming..." }));
+      setStatus({ type: "success", msg: "Winnings claimed!", txHash: hash });
       setPayTx("success"); setTimeout(() => setPayTx("idle"), 2000);
-      loadMarkets();
+      reloadWithDelay();
     } catch (e: unknown) { setPayTx("fail"); setStatus({ type: "error", msg: (e as Error).message }); }
   };
 
@@ -246,8 +328,11 @@ export default function Dashboard() {
         <div>
           {addr ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">{walletName} · {f(addr)}</span>
-              <button onClick={() => { setAddr(null); setWalletName(""); }} className="text-xs text-gray-500 hover:text-white">Disconnect</button>
+              <div className="text-right">
+                <div className="text-sm">{walletName} &middot; {f(addr)}</div>
+                {balance !== null && <div className="text-xs text-purple-400">{balance} XLM</div>}
+              </div>
+              <button onClick={() => { setAddr(null); setWalletName(""); setBalance(null); }} className="text-xs text-gray-500 hover:text-white">Disconnect</button>
             </div>
           ) : (
             <button onClick={() => setShowWm(true)} className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -270,7 +355,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <button onClick={createMarket} disabled={creating || !question || !deadline} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-lg font-medium transition-colors">
-                {creating ? "Creating…" : "Create Market"}
+                {creating ? "Creating..." : "Create Market"}
               </button>
             </div>
           </div>
@@ -279,7 +364,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Markets</h2>
           <button onClick={loadMarkets} className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
-            {loading ? "Loading…" : "↻ Refresh"}
+            {loading ? "Loading..." : "\u21bb Refresh"}
           </button>
         </div>
 
@@ -305,7 +390,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <h3 className="font-semibold">{m.question}</h3>
-                  <div className="text-xs text-gray-500 mt-1">Deadline: {dt(m.deadline)} · by {f(m.creator)}</div>
+                  <div className="text-xs text-gray-500 mt-1">Deadline: {dt(m.deadline)} &middot; by {f(m.creator)}</div>
                 </div>
               </div>
 
@@ -333,8 +418,8 @@ export default function Dashboard() {
               <div className="flex gap-2">
                 {!m.resolved && addr && (
                   <>
-                    <button onClick={() => { setBetMarket(m.id); setBetAmount(""); }} className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 text-sm text-green-400 font-medium transition-colors">Bet YES</button>
-                    <button onClick={() => { setBetMarket(m.id); setBetAmount(""); }} className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 text-sm text-red-400 font-medium transition-colors">Bet NO</button>
+                    <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(true); }} className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 text-sm text-green-400 font-medium transition-colors">Bet YES</button>
+                    <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(false); }} className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 text-sm text-red-400 font-medium transition-colors">Bet NO</button>
                   </>
                 )}
                 {m.resolved && myBet && !myBet.claimed && mySide === (m.outcome ? "YES" : "NO") && (
@@ -351,10 +436,12 @@ export default function Dashboard() {
               </div>
 
               {betMarket === m.id && (
-                <div className="mt-3 flex gap-2">
-                  <input className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm" type="number" placeholder="Amount (stroops)" value={betAmount} onChange={e => setBetAmount(e.target.value)} />
-                  <button onClick={() => placeBet(m.id, true)} disabled={payTx === "pending"} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium">YES</button>
-                  <button onClick={() => placeBet(m.id, false)} disabled={payTx === "pending"} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium">NO</button>
+                <div className="mt-3 flex gap-2 items-center">
+                  <input className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm" type="number" step="0.0000001" min="0.0000001" placeholder="Amount (XLM)" value={betAmount} onChange={e => setBetAmount(e.target.value)} />
+                  <span className="text-xs text-gray-400">{betSide ? "YES" : "NO"}</span>
+                  <button onClick={() => placeBet(m.id, betSide)} disabled={payTx === "pending"} className={`px-4 py-2 rounded-lg text-sm font-medium ${betSide ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}`}>
+                    {payTx === "pending" ? "Sending..." : "Confirm"}
+                  </button>
                 </div>
               )}
             </div>
@@ -363,7 +450,7 @@ export default function Dashboard() {
       </div>
 
       {status && (
-        <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl text-sm flex items-center gap-2 shadow-lg ${status.type === "success" ? "bg-green-600" : status.type === "error" ? "bg-red-600" : "bg-gray-800"}`}>
+        <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl text-sm flex items-center gap-2 shadow-lg ${status.type === "success" ? "bg-green-600" : status.type === "error" ? "bg-red-600" : "bg-blue-600"}`}>
           {status.msg}
           {status.txHash && <a href={`${EXPLORER}/tx/${status.txHash}`} target="_blank" rel="noopener" className="underline">TX &nearr;</a>}
         </div>

@@ -47,7 +47,6 @@ fn test_create_market() {
 }
 
 #[test]
-#[test]
 #[should_panic(expected = "Deadline must be in the future")]
 fn test_create_market_past_deadline() {
     let env = Env::default();
@@ -65,8 +64,6 @@ fn test_create_market_empty_question() {
     let creator = Address::generate(&env);
     create_market_internal(&client, &creator, "", 9999999999);
 }
-
-#[test]
 
 #[test]
 fn test_place_bet_yes() {
