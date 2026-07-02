@@ -6,7 +6,7 @@ Create YES/NO markets, bet XLM, resolve based on real-world facts, claim winning
 
 ## Live Demo
 
-- **Frontend**: https://frontend-ashy-chi-87.vercel.app
+- **Frontend**: https://bet-fifaworldcup2026.vercel.app
 - **Explorer**: https://stellar.expert/explorer/testnet/contract/CANFJTJMC6KHB42CDC5JHI5UBI3E5BH7HYYE3UB5VASCVSA5CAM52NO3
 
 ## Deployed (Testnet)
@@ -36,7 +36,7 @@ Create YES/NO markets, bet XLM, resolve based on real-world facts, claim winning
 - **Wallet**: Freighter (via `@stellar/freighter-api`)
 - **RPC**: `stellar-sdk@13.3.0` with raw RPC calls (bypasses SDK XDR parsing)
 - **CI/CD**: GitHub Actions (contract tests + WASM build + frontend build)
-- **Hosting**: [Vercel](https://frontend-ashy-chi-87.vercel.app)
+- **Hosting**: [Vercel](https://bet-fifaworldcup2026.vercel.app)
 
 ## Architecture
 
