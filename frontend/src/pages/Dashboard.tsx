@@ -55,6 +55,21 @@ async function waitForTx(hash: string): Promise<{ status: "SUCCESS" | "FAILED" |
   return { status: "TIMEOUT", error: "TX taking longer than expected" };
 }
 
+function friendlyErr(_func: string, raw: string): string {
+  const r = raw.toLowerCase();
+  if (r.includes("deadline passed") || r.includes("deadline must be")) return "⏰ Deadline has passed — create a new market with a future deadline";
+  if (r.includes("deadline not reached")) return "⏰ Deadline hasn't been reached yet — wait until after the deadline to resolve";
+  if (r.includes("already resolved")) return "🔒 Market already resolved";
+  if (r.includes("no winning bet")) return "😔 You bet on the losing side — no winnings to claim";
+  if (r.includes("already claimed")) return "✅ Already claimed";
+  if (r.includes("not resolved")) return "⏳ Market not resolved yet";
+  if (r.includes("only creator")) return "🔑 Only the market creator can perform this action";
+  if (r.includes("not found")) return "❓ Market not found on-chain";
+  if (r.includes("resource limit")) return "⚡ Transaction too complex — try a smaller amount or increase fee";
+  if (r.includes("unreachablecode") || r.includes("hosterror")) return "⚠️ Contract rejected — deadline passed, market resolved, or insufficient balance";
+  return `Simulation error: ${raw.slice(0, 200)}`;
+}
+
 async function simSignSend(
   func: string,
   args: xdr.ScVal[],
@@ -72,7 +87,10 @@ async function simSignSend(
   const sim = await callRpc("simulateTransaction", { transaction: raw.toXDR() }) as Record<string, unknown>;
   console.log("[simSignSend] sim keys:", Object.keys(sim));
 
-  if (sim.error) throw new Error(`Simulation RPC error: ${sim.error as string}`);
+  if (sim.error) {
+    const raw = typeof sim.error === "string" ? sim.error : JSON.stringify(sim.error);
+    throw new Error(friendlyErr(func, raw));
+  }
   if ((sim as { result?: { error?: string } }).result?.error) {
     throw new Error(`Simulation failed: ${(sim as { result: { error: string } }).result.error}`);
   }
