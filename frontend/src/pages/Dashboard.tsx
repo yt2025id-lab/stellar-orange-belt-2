@@ -306,153 +306,184 @@ export default function Dashboard() {
   const dt = (ts: number) => new Date(ts * 1000).toLocaleDateString();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
       {showWm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowWm(false)}>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-80" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4">Connect Wallet</h3>
-            <button onClick={connectFreighter} className="w-full flex items-center gap-3 bg-gray-800 hover:bg-gray-700 rounded-xl p-3 transition-colors">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowWm(false)}>
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-4 text-center">Connect Wallet</h3>
+            <button onClick={connectFreighter} className="w-full flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 rounded-xl p-3 transition-colors font-medium">
               <img src="/logoStellar.png" alt="" className="w-6 h-6" />
-              <span>Freighter</span>
+              Freighter
             </button>
           </div>
         </div>
       )}
 
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-sm text-gray-400 hover:text-white">&larr; Back</Link>
-          <div className="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center font-bold text-xs">P</div>
-          <span className="font-semibold">Stellar Prophecy</span>
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-emerald-900/40 bg-gray-950/80 backdrop-blur-sm">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link to="/" className="text-xs sm:text-sm text-gray-400 hover:text-emerald-400 transition-colors">&larr; Back</Link>
+          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-yellow-500 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-emerald-600/20">⚽</div>
+          <span className="hidden sm:inline">
+            <span className="font-bold text-emerald-400">World Cup</span>
+            <span className="text-gray-400 ml-1">Prophecy</span>
+          </span>
+          <span className="sm:hidden font-bold text-emerald-400">WC Prophecy</span>
         </div>
         <div>
           {addr ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="text-right">
-                <div className="text-sm">{walletName} &middot; {f(addr)}</div>
-                {balance !== null && <div className="text-xs text-purple-400">{balance} XLM</div>}
+                <div className="text-xs sm:text-sm">{walletName} &middot; {f(addr)}</div>
+                {balance !== null && <div className="text-xs text-emerald-400 text-right">{balance} XLM</div>}
               </div>
-              <button onClick={() => { setAddr(null); setWalletName(""); setBalance(null); }} className="text-xs text-gray-500 hover:text-white">Disconnect</button>
+              <button onClick={() => { setAddr(null); setWalletName(""); setBalance(null); }} className="text-xs text-gray-500 hover:text-red-400 transition-colors">Disconnect</button>
             </div>
           ) : (
-            <button onClick={() => setShowWm(true)} className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button onClick={() => setShowWm(true)} className="bg-gradient-to-r from-emerald-600 to-yellow-600 hover:from-emerald-500 hover:to-yellow-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-emerald-600/20">
               Connect Wallet
             </button>
           )}
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        {/* Hero */}
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="text-4xl sm:text-5xl mb-3">🏆</div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-400 via-yellow-400 to-emerald-400 bg-clip-text text-transparent">World Cup Prophecy</h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-2">Predict match outcomes, bet XLM, win prizes — all on Stellar Soroban ⚡</p>
+        </div>
+
         {addr && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Create Market</h2>
-            <div className="space-y-4">
-              <input className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500" placeholder="Question (e.g. Will BTC hit $100K by 2026?)" value={question} onChange={e => setQuestion(e.target.value)} />
-              <div className="flex gap-3">
-                <input className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500" type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} />
-                <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 bg-gray-800 border border-gray-700 rounded-lg">
-                  Fee: <span className="text-white">2% (fixed)</span>
+          <div className="bg-gray-900/60 border border-emerald-900/30 rounded-xl p-4 sm:p-6 mb-6 backdrop-blur-sm">
+            <h2 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
+              <span>➕</span> Create Market
+            </h2>
+            <div className="space-y-3 sm:space-y-4">
+              <input className="w-full bg-gray-800/60 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Match question (e.g. Will Brazil win the 2026 World Cup?)" value={question} onChange={e => setQuestion(e.target.value)} />
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <input className="flex-1 bg-gray-800/60 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-colors" type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} />
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-400 bg-gray-800/60 border border-gray-700 rounded-lg whitespace-nowrap">
+                  Fee: <span className="text-emerald-400 font-medium">2%</span>
                 </div>
               </div>
-              <button onClick={createMarket} disabled={creating || !question || !deadline} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-lg font-medium transition-colors">
-                {creating ? "Creating..." : "Create Market"}
+              <button onClick={createMarket} disabled={creating || !question || !deadline} className="w-full bg-gradient-to-r from-emerald-600 to-yellow-600 hover:from-emerald-500 hover:to-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed py-2.5 sm:py-3 rounded-lg font-medium transition-all shadow-lg shadow-emerald-600/20">
+                {creating ? "Creating..." : "Create Market ⚽"}
               </button>
             </div>
           </div>
         )}
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Markets</h2>
-          <button onClick={loadMarkets} className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
-            {loading ? "Loading..." : "\u21bb Refresh"}
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <span>📋</span> Markets
+          </h2>
+          <button onClick={loadMarkets} disabled={loading} className="text-xs sm:text-sm text-gray-400 hover:text-emerald-400 flex items-center gap-1 transition-colors disabled:opacity-50">
+            {loading ? (
+              <span className="flex items-center gap-1"><span className="animate-spin inline-block w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full" /> Loading...</span>
+            ) : "\u21bb Refresh"}
           </button>
         </div>
 
         {!addr ? (
-          <div className="text-center text-gray-500 py-12">Connect wallet to view and create markets.</div>
+          <div className="text-center text-gray-500 py-16 sm:py-20">
+            <div className="text-5xl mb-4">🔮</div>
+            <p className="text-sm">Connect wallet to join the prophecy</p>
+          </div>
         ) : markets.length === 0 && !loading ? (
-          <div className="text-center text-gray-500 py-12">No markets yet. Create one above!</div>
-        ) : markets.map(m => {
-          const myYes = m.yes_bets.find(b => b.user === addr);
-          const myNo = m.no_bets.find(b => b.user === addr);
-          const myBet = myYes || myNo;
-          const mySide = myYes ? "YES" : myNo ? "NO" : null;
-          const total = m.yes_pool + m.no_pool;
-          const yesPct = total > 0 ? (m.yes_pool / total * 100) : 50;
-          return (
-            <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-4">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-gray-500">#{m.id}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${m.resolved ? (m.outcome ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400") : "bg-yellow-600/20 text-yellow-400"}`}>
-                      {m.resolved ? `Resolved: ${m.outcome ? "YES" : "NO"}` : "Active"}
-                    </span>
+          <div className="text-center text-gray-500 py-16 sm:py-20">
+            <div className="text-5xl mb-4">🏟️</div>
+            <p className="text-sm">No markets yet. Create one above!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {markets.map(m => {
+              const myYes = m.yes_bets.find(b => b.user === addr);
+              const myNo = m.no_bets.find(b => b.user === addr);
+              const myBet = myYes || myNo;
+              const mySide = myYes ? "YES" : myNo ? "NO" : null;
+              const total = m.yes_pool + m.no_pool;
+              const yesPct = total > 0 ? (m.yes_pool / total * 100) : 50;
+              const isWinningBet = myBet && m.resolved && mySide === (m.outcome ? "YES" : "NO");
+              return (
+                <div key={m.id} className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-4 sm:p-5 backdrop-blur-sm hover:border-emerald-900/40 transition-all">
+                  <div className="flex items-start justify-between mb-2 sm:mb-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-xs text-gray-500 shrink-0">#{m.id}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${m.resolved ? (m.outcome ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400") : "bg-yellow-600/20 text-yellow-400"}`}>
+                          {m.resolved ? `${m.outcome ? "✅ YES" : "❌ NO"}` : "⏳ Active"}
+                        </span>
+                        {m.resolved && isWinningBet && <span className="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-0.5 rounded-full shrink-0">🏆 Won</span>}
+                      </div>
+                      <h3 className="font-semibold text-sm sm:text-base truncate">{m.question}</h3>
+                      <div className="text-xs text-gray-500 mt-1 truncate">Deadline: {dt(m.deadline)} &middot; by {f(m.creator)}</div>
+                    </div>
                   </div>
-                  <h3 className="font-semibold">{m.question}</h3>
-                  <div className="text-xs text-gray-500 mt-1">Deadline: {dt(m.deadline)} &middot; by {f(m.creator)}</div>
-                </div>
-              </div>
 
-              <div className="flex gap-2 mb-3">
-                <div className="flex-1 bg-green-600/10 border border-green-600/20 rounded-lg p-3">
-                  <div className="text-xs text-green-400 mb-1">YES Pool</div>
-                  <div className="font-semibold">{(m.yes_pool / 1e7).toFixed(4)} XLM</div>
-                </div>
-                <div className="flex-1 bg-red-600/10 border border-red-600/20 rounded-lg p-3">
-                  <div className="text-xs text-red-400 mb-1">NO Pool</div>
-                  <div className="font-semibold">{(m.no_pool / 1e7).toFixed(4)} XLM</div>
-                </div>
-              </div>
-
-              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden mb-3">
-                <div className="h-full bg-green-500 transition-all" style={{ width: `${yesPct}%` }} />
-              </div>
-
-              {myBet && (
-                <div className={`text-xs mb-3 ${myBet.claimed ? "text-gray-500" : (mySide === (m.outcome ? "YES" : "NO") && m.resolved ? "text-green-400" : "text-yellow-400")}`}>
-                  Your bet: {(myBet.amount / 1e7).toFixed(4)} XLM on {mySide}{myBet.claimed ? " (claimed)" : ""}
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                {!m.resolved && addr && (
-                  <>
-                    <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(true); }} className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 text-sm text-green-400 font-medium transition-colors">Bet YES</button>
-                    <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(false); }} className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 text-sm text-red-400 font-medium transition-colors">Bet NO</button>
-                  </>
-                )}
-                {m.resolved && myBet && !myBet.claimed && mySide === (m.outcome ? "YES" : "NO") && (
-                  <button onClick={() => claimWinnings(m.id)} disabled={payTx === "pending"} className="flex-1 bg-purple-600 hover:bg-purple-700 rounded-lg py-2 text-sm font-medium transition-colors">
-                    Claim Winnings
-                  </button>
-                )}
-                {!m.resolved && addr === m.creator && Date.now() / 1000 > m.deadline && (
-                  <div className="flex gap-2 w-full">
-                    <button onClick={() => resolveMarket(m.id, true)} disabled={payTx === "pending"} className="flex-1 bg-green-600 hover:bg-green-700 rounded-lg py-2 text-sm font-medium">Resolve YES</button>
-                    <button onClick={() => resolveMarket(m.id, false)} disabled={payTx === "pending"} className="flex-1 bg-red-600 hover:bg-red-700 rounded-lg py-2 text-sm font-medium">Resolve NO</button>
+                  <div className="flex gap-2 mb-2 sm:mb-3">
+                    <div className="flex-1 bg-green-600/10 border border-green-600/20 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs text-green-400 mb-0.5">YES Pool</div>
+                      <div className="font-semibold text-xs sm:text-sm">{(m.yes_pool / 1e7).toFixed(4)} XLM</div>
+                    </div>
+                    <div className="flex-1 bg-red-600/10 border border-red-600/20 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs text-red-400 mb-0.5">NO Pool</div>
+                      <div className="font-semibold text-xs sm:text-sm">{(m.no_pool / 1e7).toFixed(4)} XLM</div>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              {betMarket === m.id && (
-                <div className="mt-3 flex gap-2 items-center">
-                  <input className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm" type="number" step="0.0000001" min="0.0000001" placeholder="Amount (XLM)" value={betAmount} onChange={e => setBetAmount(e.target.value)} />
-                  <span className="text-xs text-gray-400">{betSide ? "YES" : "NO"}</span>
-                  <button onClick={() => placeBet(m.id, betSide)} disabled={payTx === "pending"} className={`px-4 py-2 rounded-lg text-sm font-medium ${betSide ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}`}>
-                    {payTx === "pending" ? "Sending..." : "Confirm"}
-                  </button>
+                  <div className="w-full h-1.5 sm:h-2 bg-gray-800 rounded-full overflow-hidden mb-2 sm:mb-3">
+                    <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all" style={{ width: `${yesPct}%` }} />
+                  </div>
+
+                  {myBet && (
+                    <div className={`text-xs mb-2 sm:mb-3 px-2 py-1 rounded ${myBet.claimed ? "bg-gray-800/50 text-gray-500" : isWinningBet && m.resolved ? "bg-yellow-600/10 text-yellow-400" : "bg-gray-800/30 text-yellow-400"}`}>
+                      Your bet: {(myBet.amount / 1e7).toFixed(4)} XLM on <strong>{mySide}</strong>{myBet.claimed ? " (claimed ✅)" : isWinningBet && m.resolved ? " — Claim now!" : ""}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    {!m.resolved && addr && (
+                      <>
+                        <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(true); }} className="flex-1 min-w-[80px] bg-gray-800/80 hover:bg-emerald-700 rounded-lg py-2 text-xs sm:text-sm text-green-400 font-medium transition-colors">Bet YES</button>
+                        <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(false); }} className="flex-1 min-w-[80px] bg-gray-800/80 hover:bg-red-700 rounded-lg py-2 text-xs sm:text-sm text-red-400 font-medium transition-colors">Bet NO</button>
+                      </>
+                    )}
+                    {m.resolved && myBet && !myBet.claimed && isWinningBet && (
+                      <button onClick={() => claimWinnings(m.id)} disabled={payTx === "pending"} className="flex-1 bg-gradient-to-r from-yellow-600 to-emerald-600 hover:from-yellow-500 hover:to-emerald-500 rounded-lg py-2 text-xs sm:text-sm font-medium transition-all shadow-lg shadow-yellow-600/20">
+                        {payTx === "pending" ? "Claiming..." : "Claim 🏆"}
+                      </button>
+                    )}
+                    {!m.resolved && addr === m.creator && Date.now() / 1000 > m.deadline && (
+                      <div className="flex gap-2 w-full">
+                        <button onClick={() => resolveMarket(m.id, true)} disabled={payTx === "pending"} className="flex-1 bg-green-600 hover:bg-green-700 rounded-lg py-2 text-xs sm:text-sm font-medium">Resolve YES</button>
+                        <button onClick={() => resolveMarket(m.id, false)} disabled={payTx === "pending"} className="flex-1 bg-red-600 hover:bg-red-700 rounded-lg py-2 text-xs sm:text-sm font-medium">Resolve NO</button>
+                      </div>
+                    )}
+                  </div>
+
+                  {betMarket === m.id && (
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                      <input className="flex-1 bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-emerald-500" type="number" step="0.0000001" min="0.0000001" placeholder="Amount (XLM)" value={betAmount} onChange={e => setBetAmount(e.target.value)} />
+                      <div className="flex gap-2 items-center">
+                        <span className={`text-xs font-medium px-2 py-1 rounded ${betSide ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400"}`}>{betSide ? "YES ⚽" : "NO 🧤"}</span>
+                        <button onClick={() => placeBet(m.id, betSide)} disabled={payTx === "pending" || !betAmount || parseFloat(betAmount) <= 0} className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium disabled:opacity-50 ${betSide ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}`}>
+                          {payTx === "pending" ? "⏳" : "Confirm"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {status && (
-        <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl text-sm flex items-center gap-2 shadow-lg ${status.type === "success" ? "bg-green-600" : status.type === "error" ? "bg-red-600" : "bg-blue-600"}`}>
-          {status.msg}
-          {status.txHash && <a href={`${EXPLORER}/tx/${status.txHash}`} target="_blank" rel="noopener" className="underline">TX &nearr;</a>}
+        <div className={`fixed bottom-3 sm:bottom-4 left-2 sm:left-1/2 sm:-translate-x-1/2 right-2 sm:right-auto mx-auto max-w-md px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-2xl backdrop-blur-sm ${status.type === "success" ? "bg-emerald-600/90 text-white" : status.type === "error" ? "bg-red-600/90 text-white" : "bg-blue-600/90 text-white"}`}>
+          <span className="flex-1">{status.msg}</span>
+          {status.txHash && <a href={`${EXPLORER}/tx/${status.txHash}`} target="_blank" rel="noopener" className="underline shrink-0">TX ↗</a>}
         </div>
       )}
     </div>
