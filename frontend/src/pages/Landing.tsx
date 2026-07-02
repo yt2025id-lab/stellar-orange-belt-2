@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 export default function Landing() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-emerald-950 to-blue-950">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-blue-950">
       <style>{`
 .pl { width: 6em; height: 6em; }
 .card-container {
@@ -67,6 +67,96 @@ export default function Landing() {
 .card-container .card-content .card-btn:active {
   transform: scale(1);
 }
+.why-card {
+  --white: hsl(0, 0%, 100%);
+  --black: hsl(240, 15%, 9%);
+  --paragraph: hsl(0, 0%, 83%);
+  --line: hsl(240, 9%, 17%);
+  --primary: hsl(271, 91%, 65%);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  width: 100%;
+  background-color: hsla(240, 15%, 9%, 1);
+  background-image:
+    radial-gradient(at 88% 40%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+    radial-gradient(at 49% 30%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+    radial-gradient(at 14% 26%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+    radial-gradient(at 0% 64%, hsl(271, 99%, 26%) 0px, transparent 85%),
+    radial-gradient(at 41% 94%, hsl(271, 97%, 36%) 0px, transparent 85%),
+    radial-gradient(at 100% 99%, hsl(270, 94%, 13%) 0px, transparent 85%);
+  border-radius: 1rem;
+  box-shadow: 0px -16px 24px 0px rgba(147, 76, 255, 0.25) inset;
+}
+.why-card .card__border {
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: -10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  background-image: linear-gradient(0deg, hsl(0, 0%, 100%) -50%, hsl(0, 0%, 40%) 100%);
+  border-radius: 1rem;
+}
+.why-card .card__border::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  z-index: 200;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  transform-origin: left;
+  width: 200%;
+  height: 10rem;
+  background-image: linear-gradient(0deg, hsla(0, 0%, 100%, 0) 0%, hsl(271, 100%, 50%) 40%, hsl(271, 100%, 50%) 60%, hsla(0, 0%, 40%, 0) 100%);
+  animation: rotate 8s linear infinite;
+}
+@keyframes rotate {
+  to { transform: rotate(360deg); }
+}
+.why-card .card_title__container .card_title {
+  font-size: 1rem;
+  color: var(--white);
+}
+.why-card .card_title__container .card_paragraph {
+  margin-top: 0.25rem;
+  width: 100%;
+  font-size: 0.7rem;
+  color: var(--paragraph);
+  line-height: 1.4;
+}
+.why-card .line {
+  width: 100%;
+  height: 0.1rem;
+  background-color: var(--line);
+  border: none;
+}
+.why-card .button {
+  cursor: pointer;
+  padding: 0.5rem;
+  width: 100%;
+  background-image: linear-gradient(0deg, hsl(271, 91%, 65%), hsl(271, 70%, 40%) 100%);
+  font-size: 0.7rem;
+  color: var(--white);
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: inset 0 -2px 25px -4px var(--white);
+  transition: all 0.3s ease;
+}
+.why-card .button:hover {
+  transform: scale(1.03);
+  box-shadow: inset 0 -2px 25px -4px var(--white), 0 0 20px rgba(147, 76, 255, 0.4);
+}
+.why-card .button:active {
+  transform: scale(1);
+}
 .pl__ring { animation: ringA 2s linear infinite; }
 .pl__ring--a { stroke: #f42f25; }
 .pl__ring--b { animation-name: ringB; stroke: #f49725; }
@@ -120,50 +210,52 @@ export default function Landing() {
         </svg>
       </div>
 
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-yellow-500/20 bg-gradient-to-r from-gray-900/95 via-emerald-900/95 to-blue-900/95 backdrop-blur-md">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-purple-500/20 bg-gradient-to-r from-gray-900/95 via-purple-950/95 to-blue-950/95 backdrop-blur-md">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-yellow-500 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-emerald-600/20">⚽</div>
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-purple-600/20">⚽</div>
           <span className="hidden sm:inline">
-            <span className="font-bold text-emerald-400">World Cup</span>
+            <span className="font-bold text-purple-400">World Cup</span>
             <span className="text-gray-400 ml-1">Prophecy</span>
           </span>
-          <span className="sm:hidden font-bold text-emerald-400">WC Prophecy</span>
+          <span className="sm:hidden font-bold text-purple-400">WC Prophecy</span>
         </div>
-        <button onClick={() => navigate("/app")} className="bg-gradient-to-r from-emerald-600 to-yellow-600 hover:from-emerald-500 hover:to-yellow-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-emerald-600/20">
+        <button onClick={() => navigate("/app")} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-purple-600/20">
           Launch dApp 🚀
         </button>
       </nav>
 
       <section className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-24 sm:pt-32 pb-16 sm:pb-20 z-10">
-        <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 text-sm text-yellow-300 mb-6 sm:mb-8">
-          <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+        <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 rounded-full px-4 py-1.5 text-sm text-purple-300 mb-6 sm:mb-8">
+          <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
           Stellar Orange Belt · FIFA World Cup 2026
         </div>
         <div className="flex items-center justify-center gap-2 text-lg sm:text-xl mb-4">
           <span>🇺🇸</span><span className="text-blue-400">·</span><span>🇨🇦</span><span className="text-red-400">·</span><span>🇲🇽</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight max-w-4xl drop-shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight max-w-4xl drop-shadow-[0_0_20px_rgba(147,76,255,0.3)]">
           Predict the
-          <span className="bg-gradient-to-r from-emerald-400 via-yellow-400 to-orange-400 bg-clip-text text-transparent"> World Cup.</span>
+          <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent"> World Cup.</span>
           <br />
           <span className="text-gray-100">Win on-chain.</span>
         </h1>
-        <p className="text-yellow-400/60 text-sm sm:text-base md:text-lg max-w-xl mt-4 sm:mt-6 font-medium">
+        <p className="text-purple-300/60 text-sm sm:text-base md:text-lg max-w-xl mt-4 sm:mt-6 font-medium">
           A decentralized prediction market on Stellar Soroban. Create match markets,
           bet XLM on YES or NO outcomes, and claim your winnings — all trustlessly on-chain.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 w-full sm:w-auto px-4 sm:px-0">
-          <button onClick={() => navigate("/app")} className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 via-yellow-500 to-orange-500 hover:from-emerald-400 hover:via-yellow-400 hover:to-orange-400 text-black font-bold px-8 py-3 rounded-xl text-base transition-all shadow-lg shadow-yellow-500/25">
+          <button onClick={() => navigate("/app")} className="w-full sm:w-auto bg-gradient-to-r from-purple-500 via-blue-500 to-purple-600 hover:from-purple-400 hover:via-blue-400 hover:to-purple-500 text-white font-bold px-8 py-3 rounded-xl text-base transition-all shadow-lg shadow-purple-500/25">
             Launch App ⚽
           </button>
-          <a href="#how" className="w-full sm:w-auto text-center border border-yellow-500/30 hover:border-yellow-400 px-8 py-3 rounded-xl text-base font-medium transition-colors text-gray-300 hover:text-white">
+          <a href="#how" className="w-full sm:w-auto text-center border border-purple-500/30 hover:border-purple-400 px-8 py-3 rounded-xl text-base font-medium transition-colors text-gray-300 hover:text-white">
             How It Works
           </a>
         </div>
       </section>
 
       <section id="how" className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">How It Works</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
+          <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">How It Works</span>
+        </h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           {[
             { step: "01", icon: "🎯", title: "Create", desc: "Anyone creates a YES/NO market with a match question and deadline. 2% protocol fee." },
@@ -179,8 +271,9 @@ export default function Landing() {
               <div className="card-content">
                 <div className="title">{s.title}</div>
                 <div className="plain">
-                  <div>{s.desc}</div>
+                  <div>{s.step}</div>
                 </div>
+                <div className="text-gray-400 leading-relaxed">{s.desc}</div>
                 <button onClick={() => navigate("/app")} className="card-btn">Get Started →</button>
               </div>
             </div>
@@ -189,30 +282,29 @@ export default function Landing() {
       </section>
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Stellar Prophecy</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
+          <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Why Stellar Prophecy</span>
+        </h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {[
-            { icon: "📜", title: "1 Contract", desc: "No factory, no vaults, no complex deployments. One smart contract handles everything." },
-            { icon: "🔒", title: "Trustless", desc: "All bets are escrowed on-chain. Creator can't steal. Winners automatically receive their share." },
-            { icon: "⚖️", title: "2% Fee", desc: "Protocol fee is hardcoded at 2%. Creator receives it as incentive. No rug-pull possible." },
+            { title: "1 Contract", desc: "No factory, no vaults, no complex deployments. One smart contract handles everything.", icon: "📜" },
+            { title: "Trustless", desc: "All bets are escrowed on-chain. Creator can't steal. Winners automatically receive their share.", icon: "🔒" },
+            { title: "2% Fee", desc: "Protocol fee is hardcoded at 2%. Creator receives it as incentive. No rug-pull possible.", icon: "⚖️" },
           ].map((f) => (
-            <div key={f.title} className="card-container">
-              <div className="title-card">
-                <p>{f.title}</p>
-                <span className="text-xl">{f.icon}</span>
+            <div key={f.title} className="why-card">
+              <div className="card__border" />
+              <div className="card_title__container">
+                <div className="card_title">{f.icon} {f.title}</div>
+                <div className="card_paragraph">{f.desc}</div>
               </div>
-              <div className="card-content">
-                <div className="plain">
-                  <div>{f.desc}</div>
-                </div>
-                <button onClick={() => navigate("/app")} className="card-btn">Launch dApp →</button>
-              </div>
+              <hr className="line" />
+              <button onClick={() => navigate("/app")} className="button">Launch dApp →</button>
             </div>
           ))}
         </div>
       </section>
 
-      <footer className="border-t border-emerald-900/40 py-8 text-center text-gray-500 text-xs sm:text-sm">
+      <footer className="border-t border-purple-900/40 py-8 text-center text-gray-500 text-xs sm:text-sm">
         World Cup Prophecy · Orange Belt · Stellar Soroban · 2026
       </footer>
     </div>
