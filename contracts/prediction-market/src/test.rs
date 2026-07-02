@@ -154,7 +154,11 @@ fn test_resolve_and_claim() {
     assert_eq!(market.resolved, true);
     assert_eq!(market.outcome, true);
 
+    let bal_before = token::Client::new(&env, &native_token).balance(&alice);
     client.claim_winnings(&alice, &native_token, &0);
+    let bal_after = token::Client::new(&env, &native_token).balance(&alice);
+    assert!(bal_after > bal_before, "Winner should receive XLM");
+
     let after = client.get_market(&0);
     assert_eq!(after.yes_bets.get(0).unwrap().claimed, true);
 }
