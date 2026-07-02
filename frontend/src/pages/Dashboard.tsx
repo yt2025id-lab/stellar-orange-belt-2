@@ -308,6 +308,73 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-emerald-950 to-blue-950">
+      <style>{`
+.loader {
+  --color-one: #ffbf48;
+  --color-two: #be4a1d;
+  --color-three: #ffbf4780;
+  --color-four: #bf4a1d80;
+  --color-five: #ffbf4740;
+  --time-animation: 2s;
+  --size: 1;
+  position: relative;
+  border-radius: 50%;
+  transform: scale(var(--size));
+  box-shadow: 0 0 25px 0 var(--color-three), 0 20px 50px 0 var(--color-four);
+  animation: colorize calc(var(--time-animation) * 3) ease-in-out infinite;
+}
+.loader::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  border-top: solid 1px var(--color-one);
+  border-bottom: solid 1px var(--color-two);
+  background: linear-gradient(180deg, var(--color-five), var(--color-four));
+  box-shadow: inset 0 10px 10px 0 var(--color-three), inset 0 -10px 10px 0 var(--color-four);
+}
+.loader .box {
+  width: 100px; height: 100px;
+  background: linear-gradient(180deg, var(--color-one) 30%, var(--color-two) 70%);
+  mask: url(#clipping); -webkit-mask: url(#clipping);
+}
+.loader svg { position: absolute; }
+.loader svg #clipping { filter: contrast(15); animation: roundness calc(var(--time-animation) / 2) linear infinite; }
+.loader svg #clipping polygon { filter: blur(7px); }
+.loader svg #clipping polygon:nth-child(1) { transform-origin: 75% 25%; transform: rotate(90deg); }
+.loader svg #clipping polygon:nth-child(2) { transform-origin: 50% 50%; animation: rotation var(--time-animation) linear infinite reverse; }
+.loader svg #clipping polygon:nth-child(3) { transform-origin: 50% 60%; animation: rotation var(--time-animation) linear infinite; animation-delay: calc(var(--time-animation) / -3); }
+.loader svg #clipping polygon:nth-child(4) { transform-origin: 40% 40%; animation: rotation var(--time-animation) linear infinite reverse; }
+.loader svg #clipping polygon:nth-child(5) { transform-origin: 40% 40%; animation: rotation var(--time-animation) linear infinite reverse; animation-delay: calc(var(--time-animation) / -2); }
+.loader svg #clipping polygon:nth-child(6) { transform-origin: 60% 40%; animation: rotation var(--time-animation) linear infinite; }
+.loader svg #clipping polygon:nth-child(7) { transform-origin: 60% 40%; animation: rotation var(--time-animation) linear infinite; animation-delay: calc(var(--time-animation) / -1.5); }
+@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes roundness { 0% { filter: contrast(15); } 20% { filter: contrast(3); } 40% { filter: contrast(3); } 60% { filter: contrast(15); } 100% { filter: contrast(15); } }
+@keyframes colorize { 0% { filter: hue-rotate(0deg); } 20% { filter: hue-rotate(-30deg); } 40% { filter: hue-rotate(-60deg); } 60% { filter: hue-rotate(-90deg); } 80% { filter: hue-rotate(-45deg); } 100% { filter: hue-rotate(0deg); } }
+      `}</style>
+
+      {/* Hero background loader */}
+      <div className="fixed inset-0 pointer-events-none flex items-center justify-center opacity-[0.12]">
+        <div className="loader" style={{ transform: 'scale(3.5)' }}>
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <defs>
+              <clipPath id="clipping">
+                <polygon points="6,50 25,95 75,95 94,50 75,5 25,5" />
+                <polygon points="9,50 32,93 68,93 91,50 68,7 32,7" />
+                <polygon points="14,50 38,90 62,90 86,50 62,10 38,10" />
+                <polygon points="19,50 40,86 60,86 81,50 60,14 40,14" />
+                <polygon points="24,50 43,82 57,82 76,50 57,18 43,18" />
+                <polygon points="30,50 46,78 54,78 70,50 54,22 46,22" />
+                <polygon points="36,50 48,74 52,74 64,50 52,26 48,26" />
+              </clipPath>
+            </defs>
+            <rect width="100" height="100" fill="currentColor" />
+          </svg>
+          <div className="box" />
+        </div>
+      </div>
+
       {/* WC 2026 floating stars */}
       <div className="fixed inset-0 pointer-events-none opacity-20">
         <div className="absolute top-10 left-[10%] text-2xl animate-pulse">⭐</div>
@@ -364,7 +431,6 @@ export default function Dashboard() {
       <div className="relative max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8 z-10">
         {/* Hero */}
         <div className="text-center mb-8 sm:mb-10">
-          <div className="text-5xl sm:text-6xl mb-2 animate-bounce [animation-duration:3s]">🏆</div>
           <div className="flex items-center justify-center gap-2 text-lg sm:text-xl mb-1">
             <span>🇺🇸</span><span className="text-blue-400">·</span><span>🇨🇦</span><span className="text-red-400">·</span><span>🇲🇽</span>
           </div>
