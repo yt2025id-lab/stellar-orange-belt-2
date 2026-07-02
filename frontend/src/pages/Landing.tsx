@@ -6,6 +6,67 @@ export default function Landing() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-emerald-950 to-blue-950">
       <style>{`
 .pl { width: 6em; height: 6em; }
+.card-container {
+  width: 100%;
+  background: linear-gradient(to top right, #975af4, #2f7cf8 40%, #78aafa 65%, #934cff 100%);
+  padding: 4px;
+  border-radius: 32px;
+  display: flex;
+  flex-direction: column;
+}
+.card-container .title-card {
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+  justify-content: space-between;
+  color: #fff;
+}
+.card-container .title-card p {
+  font-size: 14px;
+  font-weight: 600;
+  font-style: italic;
+  text-shadow: 2px 2px 6px #2975ee;
+}
+.card-container .card-content {
+  width: 100%;
+  height: 100%;
+  background-color: #161a20;
+  border-radius: 30px;
+  color: #838383;
+  font-size: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card-container .card-content .title {
+  font-weight: 600;
+  color: #bab9b9;
+}
+.card-container .card-content .plain :nth-child(1) {
+  font-size: 36px;
+  color: #fff;
+}
+.card-container .card-content .card-btn {
+  background: linear-gradient(4deg, #975af4, #2f7cf8 40%, #78aafa 65%, #934cff 100%);
+  padding: 8px;
+  border: none;
+  width: 100%;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6);
+}
+.card-container .card-content .card-btn:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px #fff;
+  transform: scale(1.03);
+}
+.card-container .card-content .card-btn:active {
+  transform: scale(1);
+}
 .pl__ring { animation: ringA 2s linear infinite; }
 .pl__ring--a { stroke: #f42f25; }
 .pl__ring--b { animation-name: ringB; stroke: #f49725; }
@@ -103,32 +164,49 @@ export default function Landing() {
 
       <section id="how" className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">How It Works</h2>
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           {[
-            { step: "1", title: "Create", desc: "Anyone creates a YES/NO market with a match question and deadline. 2% protocol fee." },
-            { step: "2", title: "Bet", desc: "Participants bet XLM on YES or NO. All bets are held in the smart contract escrow." },
-            { step: "3", title: "Resolve", desc: "After deadline, creator resolves the market based on real-world match results." },
-            { step: "4", title: "Claim", desc: "Winners claim their share of the losing pool. Losers walk away. Trustless." },
+            { step: "01", icon: "🎯", title: "Create", desc: "Anyone creates a YES/NO market with a match question and deadline. 2% protocol fee." },
+            { step: "02", icon: "⚡", title: "Bet", desc: "Participants bet XLM on YES or NO. All bets are held in the smart contract escrow." },
+            { step: "03", icon: "✅", title: "Resolve", desc: "After deadline, creator resolves the market based on real-world match results." },
+            { step: "04", icon: "🏆", title: "Claim", desc: "Winners claim their share of the losing pool. Losers walk away. Trustless." },
           ].map((s) => (
-            <div key={s.step} className="bg-gray-900/60 border border-gray-800 rounded-xl p-5 sm:p-6 text-center backdrop-blur-sm">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-sm">{s.step}</div>
-              <h3 className="font-semibold mb-2 text-emerald-400">{s.title}</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">{s.desc}</p>
+            <div key={s.step} className="card-container">
+              <div className="title-card">
+                <p>Step {s.step}</p>
+                <span className="text-xl">{s.icon}</span>
+              </div>
+              <div className="card-content">
+                <div className="title">{s.title}</div>
+                <div className="plain">
+                  <div>{s.desc}</div>
+                </div>
+                <button onClick={() => navigate("/app")} className="card-btn">Get Started →</button>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Stellar Prophecy</h2>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {[
-            { title: "1 Contract", desc: "No factory, no vaults, no complex deployments. One smart contract handles everything." },
-            { title: "Trustless", desc: "All bets are escrowed on-chain. Creator can't steal. Winners automatically receive their share." },
-            { title: "2% Fee", desc: "Protocol fee is hardcoded at 2%. Creator receives it as incentive. No rug-pull possible." },
+            { icon: "📜", title: "1 Contract", desc: "No factory, no vaults, no complex deployments. One smart contract handles everything." },
+            { icon: "🔒", title: "Trustless", desc: "All bets are escrowed on-chain. Creator can't steal. Winners automatically receive their share." },
+            { icon: "⚖️", title: "2% Fee", desc: "Protocol fee is hardcoded at 2%. Creator receives it as incentive. No rug-pull possible." },
           ].map((f) => (
-            <div key={f.title} className="border border-gray-800 rounded-xl p-5 sm:p-6">
-              <h3 className="font-semibold text-emerald-400 mb-2">{f.title}</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">{f.desc}</p>
+            <div key={f.title} className="card-container">
+              <div className="title-card">
+                <p>{f.title}</p>
+                <span className="text-xl">{f.icon}</span>
+              </div>
+              <div className="card-content">
+                <div className="plain">
+                  <div>{f.desc}</div>
+                </div>
+                <button onClick={() => navigate("/app")} className="card-btn">Launch dApp →</button>
+              </div>
             </div>
           ))}
         </div>
