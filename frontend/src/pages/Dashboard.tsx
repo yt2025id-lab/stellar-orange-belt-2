@@ -211,6 +211,8 @@ export default function Dashboard() {
 
   useEffect(() => { isConnected().then(r => { if (r.isConnected) getAddress().then(({ address: a }) => doConnect(a)); }).catch(() => {}); }, []);
 
+  useEffect(() => { if (status && status.type !== "error") { const t = setTimeout(() => setStatus(null), 3000); return () => clearTimeout(t); } }, [status]);
+
   const connectFreighter = async () => {
     const { address: a, error: e } = await requestAccess();
     if (e || !a) { setStatus({ type: "error", msg: "Install Freighter extension." }); return; }
@@ -243,7 +245,7 @@ export default function Dashboard() {
           const market = parseMarket(m, i); if (market) parsed.push(market);
         }
         setMarkets(parsed);
-        setStatus({ type: "success", msg: `${parsed.length} market${parsed.length !== 1 ? "s" : ""} loaded` });
+        setStatus(null);
       } catch (e: unknown) {
         console.error("[loadMarkets] parse failed:", (e as Error).message, (e as Error).stack);
         setMarkets([]); setStatus({ type: "error", msg: "Markets exist but failed to parse (XDR mismatch)" });
@@ -531,6 +533,7 @@ export default function Dashboard() {
         <div className={`fixed bottom-3 sm:bottom-4 left-2 sm:left-1/2 sm:-translate-x-1/2 right-2 sm:right-auto mx-auto max-w-md px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-2xl backdrop-blur-md z-50 ${status.type === "success" ? "bg-emerald-700/90 text-white border border-emerald-500/30" : status.type === "error" ? "bg-red-700/90 text-white border border-red-500/30" : "bg-blue-700/90 text-white border border-blue-500/30"}`}>
           <span className="flex-1">{status.type === "success" ? "✅ " : status.type === "error" ? "❌ " : "ℹ️ "}{status.msg}</span>
           {status.txHash && <a href={`${EXPLORER}/tx/${status.txHash}`} target="_blank" rel="noopener" className="underline shrink-0 text-yellow-300 hover:text-yellow-200">TX ↗</a>}
+          <button onClick={() => setStatus(null)} className="shrink-0 text-white/50 hover:text-white text-base leading-none ml-1">✕</button>
         </div>
       )}
     </div>
