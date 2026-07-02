@@ -15,7 +15,11 @@ Create YES/NO markets, bet XLM, resolve based on real-world facts, claim winning
 |------|-------------|
 | Contract | `CANFJTJMC6KHB42CDC5JHI5UBI3E5BH7HYYE3UB5VASCVSA5CAM52NO3` |
 | Native XLM | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
-| TX (place_bet) | `fcf595c975877f19e512ba51c7b8b51872a2bd141529766baedbc0ec991059bf` |
+| TX create_market | `c894aa8573ba2cfe840d14d700222262d522ec9b0927f44a321ec684cb18c432` |
+| TX place_bet (YES) | `595c6afa4564cb59e3bf01a6d06aacfc7332a299e9830dad05e8281560ea1a52` |
+| TX place_bet (NO) | `f5d557579bd2d6326d80399b09f5cdcbfbf5652fc336f370e1d5ca30598d6dd2` |
+| TX resolve_market | `6c9bd0baeaf0e294a8e69838e3ddb7f8969044b867fba6fff33eff67a3b92fd9` |
+| TX claim_winnings | `737ca175101006bdb33b719391ec7e27eaa5a6f08ab3a03be68e1bc20c57d891` |
 
 ## Features
 
