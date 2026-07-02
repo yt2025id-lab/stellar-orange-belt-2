@@ -455,6 +455,7 @@ export default function Dashboard() {
               const mySide = myYes ? "YES" : myNo ? "NO" : null;
               const total = m.yes_pool + m.no_pool;
               const yesPct = total > 0 ? (m.yes_pool / total * 100) : 50;
+              const expired = !m.resolved && m.deadline <= Math.floor(Date.now() / 1000);
               const isWinningBet = myBet && m.resolved && mySide === (m.outcome ? "YES" : "NO");
               const flag = FLAGS[idx % FLAGS.length];
               return (
@@ -463,8 +464,8 @@ export default function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                         <span className="text-xs text-gray-500 shrink-0">#{m.id}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${m.resolved ? (m.outcome ? "bg-green-500/20 text-green-300 border border-green-500/30" : "bg-red-500/20 text-red-300 border border-red-500/30") : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"}`}>
-                          {m.resolved ? (m.outcome ? "✅ YES" : "❌ NO") : "⏳ Open"}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${m.resolved ? (m.outcome ? "bg-green-500/20 text-green-300 border border-green-500/30" : "bg-red-500/20 text-red-300 border border-red-500/30") : expired ? "bg-gray-500/20 text-gray-400 border border-gray-500/30" : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"}`}>
+                          {m.resolved ? (m.outcome ? "✅ YES" : "❌ NO") : expired ? "🔒 Closed" : "⏳ Open"}
                         </span>
                         {m.resolved && isWinningBet && <span className="text-xs bg-gradient-to-r from-yellow-500/30 to-emerald-500/30 text-yellow-300 px-2 py-0.5 rounded-full border border-yellow-500/30 shrink-0 animate-pulse">🏆 Winner!</span>}
                         <span className="text-sm shrink-0">{flag}</span>
@@ -500,7 +501,7 @@ export default function Dashboard() {
                   )}
 
                   <div className="flex flex-wrap gap-2">
-                    {!m.resolved && addr && (
+                    {!m.resolved && !expired && addr && (
                       <>
                         <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(true); }} className="flex-1 min-w-[80px] bg-gradient-to-r from-emerald-700/60 to-emerald-600/60 hover:from-emerald-600 hover:to-emerald-500 rounded-lg py-2 text-xs sm:text-sm text-emerald-200 font-medium transition-all border border-emerald-500/20 hover:border-emerald-400/40">
                           ⚽ YES
