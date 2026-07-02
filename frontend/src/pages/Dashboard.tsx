@@ -11,6 +11,7 @@ const EXPLORER = "https://stellar.expert/explorer/testnet";
 
 const server = new Horizon.Server(HORIZON_URL);
 type TxState = "idle" | "pending" | "success" | "fail";
+const FLAGS = ["🇺🇸", "🇨🇦", "🇲🇽", "🇧🇷", "🇦🇷", "🇩🇪", "🇫🇷", "🇪🇸", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇳🇱", "🇵🇹", "🇨🇴"];
 
 function scvAddr(a: string): xdr.ScVal {
   if (!a || a.length !== 56) throw new Error(`Invalid address: "${a?.slice(0, 12)}..." (len=${a?.length})`);
@@ -306,12 +307,23 @@ export default function Dashboard() {
   const dt = (ts: number) => new Date(ts * 1000).toLocaleDateString();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-emerald-950 to-blue-950">
+      {/* WC 2026 floating stars */}
+      <div className="fixed inset-0 pointer-events-none opacity-20">
+        <div className="absolute top-10 left-[10%] text-2xl animate-pulse">⭐</div>
+        <div className="absolute top-20 right-[15%] text-xl animate-bounce">🌟</div>
+        <div className="absolute bottom-20 left-[20%] text-2xl animate-pulse">✨</div>
+        <div className="absolute top-1/3 right-[8%] text-xl animate-bounce">⭐</div>
+        <div className="absolute bottom-1/4 right-[25%] text-2xl animate-pulse">🌟</div>
+        <div className="absolute top-[15%] left-[40%] text-lg animate-bounce">✨</div>
+      </div>
+
       {showWm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowWm(false)}>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Connect Wallet</h3>
-            <button onClick={connectFreighter} className="w-full flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 rounded-xl p-3 transition-colors font-medium">
+          <div className="bg-gradient-to-br from-emerald-900 to-blue-900 border border-yellow-500/30 rounded-2xl p-6 w-full max-w-xs shadow-2xl shadow-yellow-500/10" onClick={e => e.stopPropagation()}>
+            <div className="text-4xl text-center mb-3">⚽</div>
+            <h3 className="text-lg font-semibold mb-4 text-center text-yellow-400">Connect Wallet</h3>
+            <button onClick={connectFreighter} className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-yellow-500 hover:from-emerald-400 hover:to-yellow-400 rounded-xl p-3 transition-all font-medium text-black shadow-lg">
               <img src="/logoStellar.png" alt="" className="w-6 h-6" />
               Freighter
             </button>
@@ -319,85 +331,104 @@ export default function Dashboard() {
         </div>
       )}
 
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-emerald-900/40 bg-gray-950/80 backdrop-blur-sm">
+      <nav className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-yellow-500/20 bg-gradient-to-r from-gray-900/95 via-emerald-900/95 to-blue-900/95 backdrop-blur-md">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link to="/" className="text-xs sm:text-sm text-gray-400 hover:text-emerald-400 transition-colors">&larr; Back</Link>
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-yellow-500 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-emerald-600/20">⚽</div>
+          <Link to="/" className="text-xs sm:text-sm text-yellow-400/80 hover:text-yellow-400 transition-colors">&larr; Back</Link>
+          <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-yellow-400 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-yellow-500/30 animate-bounce [animation-duration:2s]">🏆</div>
           <span className="hidden sm:inline">
-            <span className="font-bold text-emerald-400">World Cup</span>
-            <span className="text-gray-400 ml-1">Prophecy</span>
+            <span className="font-bold text-yellow-400">World Cup</span>
+            <span className="text-emerald-300 ml-1">Prophecy</span>
           </span>
-          <span className="sm:hidden font-bold text-emerald-400">WC Prophecy</span>
+          <span className="sm:hidden font-bold text-yellow-400">WC'26</span>
+          <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-600/30 to-red-600/30 rounded-full text-xs text-yellow-300 border border-yellow-500/20">
+            🇺🇸🇨🇦🇲🇽 2026
+          </span>
         </div>
         <div>
           {addr ? (
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="text-right">
-                <div className="text-xs sm:text-sm">{walletName} &middot; {f(addr)}</div>
-                {balance !== null && <div className="text-xs text-emerald-400 text-right">{balance} XLM</div>}
+                <div className="text-xs sm:text-sm text-gray-200">{walletName} &middot; {f(addr)}</div>
+                {balance !== null && <div className="text-xs text-yellow-400 text-right">{balance} XLM</div>}
               </div>
-              <button onClick={() => { setAddr(null); setWalletName(""); setBalance(null); }} className="text-xs text-gray-500 hover:text-red-400 transition-colors">Disconnect</button>
+              <button onClick={() => { setAddr(null); setWalletName(""); setBalance(null); }} className="text-xs text-gray-400 hover:text-red-400 transition-colors">Disconnect</button>
             </div>
           ) : (
-            <button onClick={() => setShowWm(true)} className="bg-gradient-to-r from-emerald-600 to-yellow-600 hover:from-emerald-500 hover:to-yellow-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-emerald-600/20">
-              Connect Wallet
+            <button onClick={() => setShowWm(true)} className="bg-gradient-to-r from-emerald-500 to-yellow-500 hover:from-emerald-400 hover:to-yellow-400 text-black font-semibold px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-yellow-500/20">
+              Connect ⚽
             </button>
           )}
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="relative max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8 z-10">
         {/* Hero */}
         <div className="text-center mb-8 sm:mb-10">
-          <div className="text-4xl sm:text-5xl mb-3">🏆</div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-400 via-yellow-400 to-emerald-400 bg-clip-text text-transparent">World Cup Prophecy</h1>
-          <p className="text-gray-500 text-xs sm:text-sm mt-2">Predict match outcomes, bet XLM, win prizes — all on Stellar Soroban ⚡</p>
+          <div className="text-5xl sm:text-6xl mb-2 animate-bounce [animation-duration:3s]">🏆</div>
+          <div className="flex items-center justify-center gap-2 text-lg sm:text-xl mb-1">
+            <span>🇺🇸</span><span className="text-blue-400">·</span><span>🇨🇦</span><span className="text-red-400">·</span><span>🇲🇽</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black bg-gradient-to-r from-emerald-400 via-yellow-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+            World Cup 2026
+          </h1>
+          <p className="text-yellow-400/80 text-xs sm:text-sm mt-1 font-medium">⚡ Predict · Bet · Win on Stellar Soroban ⚡</p>
+          <div className="flex items-center justify-center gap-2 mt-3 text-xs text-gray-400">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-400 rounded-full" />{markets.length} markets</span>
+            <span className="text-gray-600">|</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-yellow-400 rounded-full" />{balance || "0"} XLM</span>
+          </div>
         </div>
 
         {addr && (
-          <div className="bg-gray-900/60 border border-emerald-900/30 rounded-xl p-4 sm:p-6 mb-6 backdrop-blur-sm">
-            <h2 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
-              <span>➕</span> Create Market
+          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-yellow-500/20 rounded-xl p-4 sm:p-6 mb-6 backdrop-blur-md shadow-lg shadow-yellow-500/5">
+            <h2 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2 text-yellow-400">
+              <span>➕</span> Create Match Market
             </h2>
             <div className="space-y-3 sm:space-y-4">
-              <input className="w-full bg-gray-800/60 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Match question (e.g. Will Brazil win the 2026 World Cup?)" value={question} onChange={e => setQuestion(e.target.value)} />
+              <div className="flex items-center gap-2 mb-1">
+                <input className="w-full bg-gray-900/80 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 transition-all" placeholder='e.g. Will Brazil win the 2026 World Cup?' value={question} onChange={e => setQuestion(e.target.value)} />
+              </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <input className="flex-1 bg-gray-800/60 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-colors" type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} />
-                <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-400 bg-gray-800/60 border border-gray-700 rounded-lg whitespace-nowrap">
-                  Fee: <span className="text-emerald-400 font-medium">2%</span>
+                <input className="flex-1 bg-gray-900/80 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 transition-all" type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} />
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-400 bg-gray-900/80 border border-gray-700 rounded-lg whitespace-nowrap">
+                  <span>Fee:</span> <span className="text-yellow-400 font-bold">2%</span>
+                  <span className="text-emerald-400 ml-1">🔒 fixed</span>
                 </div>
               </div>
-              <button onClick={createMarket} disabled={creating || !question || !deadline} className="w-full bg-gradient-to-r from-emerald-600 to-yellow-600 hover:from-emerald-500 hover:to-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed py-2.5 sm:py-3 rounded-lg font-medium transition-all shadow-lg shadow-emerald-600/20">
-                {creating ? "Creating..." : "Create Market ⚽"}
+              <button onClick={createMarket} disabled={creating || !question || !deadline} className="w-full bg-gradient-to-r from-emerald-500 via-yellow-500 to-orange-500 hover:from-emerald-400 hover:via-yellow-400 hover:to-orange-400 text-black font-bold disabled:opacity-40 disabled:cursor-not-allowed py-2.5 sm:py-3 rounded-lg transition-all shadow-lg shadow-yellow-500/20">
+                {creating ? "⚡ Creating..." : "⚡ Create Market"}
               </button>
             </div>
           </div>
         )}
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <span>📋</span> Markets
+          <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 text-yellow-400">
+            <span>📋</span> Match Markets
+            <span className="text-xs text-gray-500 font-normal">({markets.length})</span>
           </h2>
-          <button onClick={loadMarkets} disabled={loading} className="text-xs sm:text-sm text-gray-400 hover:text-emerald-400 flex items-center gap-1 transition-colors disabled:opacity-50">
+          <button onClick={loadMarkets} disabled={loading} className="text-xs sm:text-sm text-gray-400 hover:text-yellow-400 flex items-center gap-1 transition-colors disabled:opacity-50">
             {loading ? (
-              <span className="flex items-center gap-1"><span className="animate-spin inline-block w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full" /> Loading...</span>
-            ) : "\u21bb Refresh"}
+              <span className="flex items-center gap-1"><span className="animate-spin inline-block w-3 h-3 border-2 border-yellow-400 border-t-transparent rounded-full" /> Loading...</span>
+            ) : <>🔄 Refresh</>}
           </button>
         </div>
 
         {!addr ? (
-          <div className="text-center text-gray-500 py-16 sm:py-20">
-            <div className="text-5xl mb-4">🔮</div>
-            <p className="text-sm">Connect wallet to join the prophecy</p>
+          <div className="text-center py-16 sm:py-20">
+            <div className="text-6xl mb-4 animate-bounce [animation-duration:2s]">⚽</div>
+            <p className="text-yellow-400/60 text-sm font-medium">Connect wallet to join the prophecy</p>
+            <p className="text-gray-600 text-xs mt-2">USA 🇺🇸 · Canada 🇨🇦 · Mexico 🇲🇽 2026</p>
           </div>
         ) : markets.length === 0 && !loading ? (
-          <div className="text-center text-gray-500 py-16 sm:py-20">
-            <div className="text-5xl mb-4">🏟️</div>
-            <p className="text-sm">No markets yet. Create one above!</p>
+          <div className="text-center py-16 sm:py-20">
+            <div className="text-6xl mb-4">🏟️</div>
+            <p className="text-yellow-400/60 text-sm font-medium">No markets yet</p>
+            <p className="text-gray-600 text-xs mt-2">Create the first match market above! ⚡</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {markets.map(m => {
+            {markets.map((m, idx) => {
               const myYes = m.yes_bets.find(b => b.user === addr);
               const myNo = m.no_bets.find(b => b.user === addr);
               const myBet = myYes || myNo;
@@ -405,70 +436,86 @@ export default function Dashboard() {
               const total = m.yes_pool + m.no_pool;
               const yesPct = total > 0 ? (m.yes_pool / total * 100) : 50;
               const isWinningBet = myBet && m.resolved && mySide === (m.outcome ? "YES" : "NO");
+              const flag = FLAGS[idx % FLAGS.length];
               return (
-                <div key={m.id} className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-4 sm:p-5 backdrop-blur-sm hover:border-emerald-900/40 transition-all">
+                <div key={m.id} className="group bg-gradient-to-br from-gray-800/70 to-gray-900/70 border border-gray-700/50 hover:border-yellow-500/40 rounded-xl p-4 sm:p-5 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/10 hover:-translate-y-0.5">
                   <div className="flex items-start justify-between mb-2 sm:mb-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                         <span className="text-xs text-gray-500 shrink-0">#{m.id}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${m.resolved ? (m.outcome ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400") : "bg-yellow-600/20 text-yellow-400"}`}>
-                          {m.resolved ? `${m.outcome ? "✅ YES" : "❌ NO"}` : "⏳ Active"}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${m.resolved ? (m.outcome ? "bg-green-500/20 text-green-300 border border-green-500/30" : "bg-red-500/20 text-red-300 border border-red-500/30") : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"}`}>
+                          {m.resolved ? (m.outcome ? "✅ YES" : "❌ NO") : "⏳ Open"}
                         </span>
-                        {m.resolved && isWinningBet && <span className="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-0.5 rounded-full shrink-0">🏆 Won</span>}
+                        {m.resolved && isWinningBet && <span className="text-xs bg-gradient-to-r from-yellow-500/30 to-emerald-500/30 text-yellow-300 px-2 py-0.5 rounded-full border border-yellow-500/30 shrink-0 animate-pulse">🏆 Winner!</span>}
+                        <span className="text-sm shrink-0">{flag}</span>
                       </div>
-                      <h3 className="font-semibold text-sm sm:text-base truncate">{m.question}</h3>
-                      <div className="text-xs text-gray-500 mt-1 truncate">Deadline: {dt(m.deadline)} &middot; by {f(m.creator)}</div>
+                      <h3 className="font-bold text-sm sm:text-base text-gray-100 truncate group-hover:text-yellow-200 transition-colors">{m.question}</h3>
+                      <div className="text-xs text-gray-500 mt-1 truncate flex items-center gap-2">
+                        <span>📅 {dt(m.deadline)}</span>
+                        <span>👤 {f(m.creator)}</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex gap-2 mb-2 sm:mb-3">
-                    <div className="flex-1 bg-green-600/10 border border-green-600/20 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs text-green-400 mb-0.5">YES Pool</div>
-                      <div className="font-semibold text-xs sm:text-sm">{(m.yes_pool / 1e7).toFixed(4)} XLM</div>
+                    <div className="flex-1 bg-gradient-to-br from-emerald-600/15 to-emerald-800/15 border border-emerald-500/20 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs text-emerald-300 mb-0.5 font-medium">⚽ YES</div>
+                      <div className="font-bold text-xs sm:text-sm text-emerald-200">{(m.yes_pool / 1e7).toFixed(2)} XLM</div>
                     </div>
-                    <div className="flex-1 bg-red-600/10 border border-red-600/20 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs text-red-400 mb-0.5">NO Pool</div>
-                      <div className="font-semibold text-xs sm:text-sm">{(m.no_pool / 1e7).toFixed(4)} XLM</div>
+                    <div className="flex-1 bg-gradient-to-br from-red-600/15 to-red-800/15 border border-red-500/20 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs text-red-300 mb-0.5 font-medium">🧤 NO</div>
+                      <div className="font-bold text-xs sm:text-sm text-red-200">{(m.no_pool / 1e7).toFixed(2)} XLM</div>
                     </div>
                   </div>
 
-                  <div className="w-full h-1.5 sm:h-2 bg-gray-800 rounded-full overflow-hidden mb-2 sm:mb-3">
-                    <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all" style={{ width: `${yesPct}%` }} />
+                  <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden mb-2 sm:mb-3 shadow-inner">
+                    <div className="h-full bg-gradient-to-r from-emerald-400 via-yellow-400 to-emerald-400 transition-all duration-500 rounded-full" style={{ width: `${yesPct}%` }} />
                   </div>
 
                   {myBet && (
-                    <div className={`text-xs mb-2 sm:mb-3 px-2 py-1 rounded ${myBet.claimed ? "bg-gray-800/50 text-gray-500" : isWinningBet && m.resolved ? "bg-yellow-600/10 text-yellow-400" : "bg-gray-800/30 text-yellow-400"}`}>
-                      Your bet: {(myBet.amount / 1e7).toFixed(4)} XLM on <strong>{mySide}</strong>{myBet.claimed ? " (claimed ✅)" : isWinningBet && m.resolved ? " — Claim now!" : ""}
+                    <div className={`text-xs mb-2 sm:mb-3 px-2.5 py-1.5 rounded-lg border ${myBet.claimed ? "bg-gray-800/50 border-gray-700 text-gray-500" : isWinningBet && m.resolved ? "bg-gradient-to-r from-yellow-500/10 to-emerald-500/10 border-yellow-500/20 text-yellow-300" : "bg-gray-800/30 border-gray-700/50 text-yellow-300"}`}>
+                      🎯 Your bet: <strong>{(myBet.amount / 1e7).toFixed(2)} XLM</strong> on <strong className={mySide === "YES" ? "text-emerald-400" : "text-red-400"}>{mySide}</strong>
+                      {myBet.claimed ? " ✅ Claimed" : isWinningBet && m.resolved ? " — 🏆 Claim!" : ""}
                     </div>
                   )}
 
                   <div className="flex flex-wrap gap-2">
                     {!m.resolved && addr && (
                       <>
-                        <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(true); }} className="flex-1 min-w-[80px] bg-gray-800/80 hover:bg-emerald-700 rounded-lg py-2 text-xs sm:text-sm text-green-400 font-medium transition-colors">Bet YES</button>
-                        <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(false); }} className="flex-1 min-w-[80px] bg-gray-800/80 hover:bg-red-700 rounded-lg py-2 text-xs sm:text-sm text-red-400 font-medium transition-colors">Bet NO</button>
+                        <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(true); }} className="flex-1 min-w-[80px] bg-gradient-to-r from-emerald-700/60 to-emerald-600/60 hover:from-emerald-600 hover:to-emerald-500 rounded-lg py-2 text-xs sm:text-sm text-emerald-200 font-medium transition-all border border-emerald-500/20 hover:border-emerald-400/40">
+                          ⚽ YES
+                        </button>
+                        <button onClick={() => { setBetMarket(m.id); setBetAmount(""); setBetSide(false); }} className="flex-1 min-w-[80px] bg-gradient-to-r from-red-700/60 to-red-600/60 hover:from-red-600 hover:to-red-500 rounded-lg py-2 text-xs sm:text-sm text-red-200 font-medium transition-all border border-red-500/20 hover:border-red-400/40">
+                          🧤 NO
+                        </button>
                       </>
                     )}
                     {m.resolved && myBet && !myBet.claimed && isWinningBet && (
-                      <button onClick={() => claimWinnings(m.id)} disabled={payTx === "pending"} className="flex-1 bg-gradient-to-r from-yellow-600 to-emerald-600 hover:from-yellow-500 hover:to-emerald-500 rounded-lg py-2 text-xs sm:text-sm font-medium transition-all shadow-lg shadow-yellow-600/20">
-                        {payTx === "pending" ? "Claiming..." : "Claim 🏆"}
+                      <button onClick={() => claimWinnings(m.id)} disabled={payTx === "pending"} className="flex-1 bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-black font-bold rounded-lg py-2 text-xs sm:text-sm transition-all shadow-lg shadow-yellow-500/20">
+                        {payTx === "pending" ? "⏳" : "🏆 Claim Winnings"}
                       </button>
                     )}
                     {!m.resolved && addr === m.creator && Date.now() / 1000 > m.deadline && (
                       <div className="flex gap-2 w-full">
-                        <button onClick={() => resolveMarket(m.id, true)} disabled={payTx === "pending"} className="flex-1 bg-green-600 hover:bg-green-700 rounded-lg py-2 text-xs sm:text-sm font-medium">Resolve YES</button>
-                        <button onClick={() => resolveMarket(m.id, false)} disabled={payTx === "pending"} className="flex-1 bg-red-600 hover:bg-red-700 rounded-lg py-2 text-xs sm:text-sm font-medium">Resolve NO</button>
+                        <button onClick={() => resolveMarket(m.id, true)} disabled={payTx === "pending"} className="flex-1 bg-emerald-700 hover:bg-emerald-600 rounded-lg py-2 text-xs sm:text-sm font-medium border border-emerald-500/30 transition-all">
+                          ✅ Resolve YES
+                        </button>
+                        <button onClick={() => resolveMarket(m.id, false)} disabled={payTx === "pending"} className="flex-1 bg-red-700 hover:bg-red-600 rounded-lg py-2 text-xs sm:text-sm font-medium border border-red-500/30 transition-all">
+                          ❌ Resolve NO
+                        </button>
                       </div>
                     )}
                   </div>
 
                   {betMarket === m.id && (
-                    <div className="mt-3 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                      <input className="flex-1 bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-emerald-500" type="number" step="0.0000001" min="0.0000001" placeholder="Amount (XLM)" value={betAmount} onChange={e => setBetAmount(e.target.value)} />
+                    <div className="mt-3 pt-3 border-t border-gray-700/50 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                      <input className="flex-1 bg-gray-900/80 border border-yellow-500/30 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/30 transition-all" type="number" step="0.0000001" min="0.0000001" placeholder="Amount XLM" value={betAmount} onChange={e => setBetAmount(e.target.value)} />
                       <div className="flex gap-2 items-center">
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${betSide ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400"}`}>{betSide ? "YES ⚽" : "NO 🧤"}</span>
-                        <button onClick={() => placeBet(m.id, betSide)} disabled={payTx === "pending" || !betAmount || parseFloat(betAmount) <= 0} className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-medium disabled:opacity-50 ${betSide ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}`}>
-                          {payTx === "pending" ? "⏳" : "Confirm"}
+                        <span className={`text-xs font-bold px-2.5 py-1.5 rounded ${betSide ? "bg-emerald-600/30 text-emerald-300 border border-emerald-500/30" : "bg-red-600/30 text-red-300 border border-red-500/30"}`}>
+                          {betSide ? "⚽ YES" : "🧤 NO"}
+                        </span>
+                        <button onClick={() => placeBet(m.id, betSide)} disabled={payTx === "pending" || !betAmount || parseFloat(betAmount) <= 0} className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all disabled:opacity-40 ${betSide ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30" : "bg-red-600 hover:bg-red-500 shadow-red-600/30"} shadow-lg`}>
+                          {payTx === "pending" ? "⏳" : "⚡ Bet"}
                         </button>
                       </div>
                     </div>
@@ -481,9 +528,9 @@ export default function Dashboard() {
       </div>
 
       {status && (
-        <div className={`fixed bottom-3 sm:bottom-4 left-2 sm:left-1/2 sm:-translate-x-1/2 right-2 sm:right-auto mx-auto max-w-md px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-2xl backdrop-blur-sm ${status.type === "success" ? "bg-emerald-600/90 text-white" : status.type === "error" ? "bg-red-600/90 text-white" : "bg-blue-600/90 text-white"}`}>
-          <span className="flex-1">{status.msg}</span>
-          {status.txHash && <a href={`${EXPLORER}/tx/${status.txHash}`} target="_blank" rel="noopener" className="underline shrink-0">TX ↗</a>}
+        <div className={`fixed bottom-3 sm:bottom-4 left-2 sm:left-1/2 sm:-translate-x-1/2 right-2 sm:right-auto mx-auto max-w-md px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-2xl backdrop-blur-md z-50 ${status.type === "success" ? "bg-emerald-700/90 text-white border border-emerald-500/30" : status.type === "error" ? "bg-red-700/90 text-white border border-red-500/30" : "bg-blue-700/90 text-white border border-blue-500/30"}`}>
+          <span className="flex-1">{status.type === "success" ? "✅ " : status.type === "error" ? "❌ " : "ℹ️ "}{status.msg}</span>
+          {status.txHash && <a href={`${EXPLORER}/tx/${status.txHash}`} target="_blank" rel="noopener" className="underline shrink-0 text-yellow-300 hover:text-yellow-200">TX ↗</a>}
         </div>
       )}
     </div>
