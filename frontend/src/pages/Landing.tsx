@@ -5,70 +5,58 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-emerald-950 to-blue-950">
       <style>{`
-.loader {
-  --color-one: #ffbf48;
-  --color-two: #be4a1d;
-  --color-three: #ffbf4780;
-  --color-four: #bf4a1d80;
-  --color-five: #ffbf4740;
-  --time-animation: 2s;
-  --size: 1;
-  position: relative;
-  border-radius: 50%;
-  transform: scale(var(--size));
-  box-shadow: 0 0 25px 0 var(--color-three), 0 20px 50px 0 var(--color-four);
-  animation: colorize calc(var(--time-animation) * 3) ease-in-out infinite;
+.pl { width: 6em; height: 6em; }
+.pl__ring { animation: ringA 2s linear infinite; }
+.pl__ring--a { stroke: #f42f25; }
+.pl__ring--b { animation-name: ringB; stroke: #f49725; }
+.pl__ring--c { animation-name: ringC; stroke: #255ff4; }
+.pl__ring--d { animation-name: ringD; stroke: #f42582; }
+@keyframes ringA {
+  from, 4% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -330; }
+  12% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -335; }
+  32% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -595; }
+  40%, 54% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -660; }
+  62% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -665; }
+  82% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -925; }
+  90%, to { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -990; }
 }
-.loader::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 100px; height: 100px;
-  border-radius: 50%;
-  border-top: solid 1px var(--color-one);
-  border-bottom: solid 1px var(--color-two);
-  background: linear-gradient(180deg, var(--color-five), var(--color-four));
-  box-shadow: inset 0 10px 10px 0 var(--color-three), inset 0 -10px 10px 0 var(--color-four);
+@keyframes ringB {
+  from, 12% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -110; }
+  20% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -115; }
+  40% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -195; }
+  48%, 62% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -220; }
+  70% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -225; }
+  90% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -305; }
+  98%, to { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -330; }
 }
-.loader .box {
-  width: 100px; height: 100px;
-  background: linear-gradient(180deg, var(--color-one) 30%, var(--color-two) 70%);
-  mask: url(#clipping); -webkit-mask: url(#clipping);
+@keyframes ringC {
+  from { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+  8% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+  28% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+  36%, 58% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+  66% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+  86% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+  94%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
 }
-.loader svg { position: absolute; }
-.loader svg #clipping { filter: contrast(15); animation: roundness calc(var(--time-animation) / 2) linear infinite; }
-.loader svg #clipping polygon { filter: blur(7px); }
-.loader svg #clipping polygon:nth-child(1) { transform-origin: 75% 25%; transform: rotate(90deg); }
-.loader svg #clipping polygon:nth-child(2) { transform-origin: 50% 50%; animation: rotation var(--time-animation) linear infinite reverse; }
-.loader svg #clipping polygon:nth-child(3) { transform-origin: 50% 60%; animation: rotation var(--time-animation) linear infinite; animation-delay: calc(var(--time-animation) / -3); }
-.loader svg #clipping polygon:nth-child(4) { transform-origin: 40% 40%; animation: rotation var(--time-animation) linear infinite reverse; }
-.loader svg #clipping polygon:nth-child(5) { transform-origin: 40% 40%; animation: rotation var(--time-animation) linear infinite reverse; animation-delay: calc(var(--time-animation) / -2); }
-.loader svg #clipping polygon:nth-child(6) { transform-origin: 60% 40%; animation: rotation var(--time-animation) linear infinite; }
-.loader svg #clipping polygon:nth-child(7) { transform-origin: 60% 40%; animation: rotation var(--time-animation) linear infinite; animation-delay: calc(var(--time-animation) / -1.5); }
-@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes roundness { 0% { filter: contrast(15); } 20% { filter: contrast(3); } 40% { filter: contrast(3); } 60% { filter: contrast(15); } 100% { filter: contrast(15); } }
-@keyframes colorize { 0% { filter: hue-rotate(0deg); } 20% { filter: hue-rotate(-30deg); } 40% { filter: hue-rotate(-60deg); } 60% { filter: hue-rotate(-90deg); } 80% { filter: hue-rotate(-45deg); } 100% { filter: hue-rotate(0deg); } }
+@keyframes ringD {
+  from, 8% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+  16% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+  36% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+  44%, 50% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+  58% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+  78% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+  86%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+}
       `}</style>
 
-      {/* Hero background loader */}
-      <div className="fixed inset-0 pointer-events-none flex items-center justify-center opacity-[0.15]">
-        <div className="loader" style={{ transform: 'scale(4)' }}>
-          <svg width="100" height="100" viewBox="0 0 100 100">
-            <defs>
-              <clipPath id="clipping">
-                <polygon points="6,50 25,95 75,95 94,50 75,5 25,5" />
-                <polygon points="9,50 32,93 68,93 91,50 68,7 32,7" />
-                <polygon points="14,50 38,90 62,90 86,50 62,10 38,10" />
-                <polygon points="19,50 40,86 60,86 81,50 60,14 40,14" />
-                <polygon points="24,50 43,82 57,82 76,50 57,18 43,18" />
-                <polygon points="30,50 46,78 54,78 70,50 54,22 46,22" />
-                <polygon points="36,50 48,74 52,74 64,50 52,26 48,26" />
-              </clipPath>
-            </defs>
-            <rect width="100" height="100" fill="currentColor" />
-          </svg>
-          <div className="box" />
-        </div>
+      {/* Hero background animated rings */}
+      <div className="fixed inset-0 pointer-events-none flex items-center justify-center opacity-[0.12]">
+        <svg className="pl" viewBox="0 0 200 200" width="200" height="200">
+          <circle className="pl__ring pl__ring--a" cx="100" cy="100" r="82" />
+          <circle className="pl__ring pl__ring--b" cx="100" cy="100" r="82" />
+          <circle className="pl__ring pl__ring--c" cx="100" cy="100" r="82" />
+          <circle className="pl__ring pl__ring--d" cx="100" cy="100" r="82" />
+        </svg>
       </div>
 
       <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-yellow-500/20 bg-gradient-to-r from-gray-900/95 via-emerald-900/95 to-blue-900/95 backdrop-blur-md">
