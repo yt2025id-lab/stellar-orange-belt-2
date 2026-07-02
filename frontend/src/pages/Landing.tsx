@@ -157,6 +157,30 @@ export default function Landing() {
 .why-card .button:active {
   transform: scale(1);
 }
+.slideshow { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.slideshow .slide {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  opacity: 0; animation: crossfade 20s infinite;
+}
+.slideshow .slide:nth-child(1)  { background-image: url("https://images.unsplash.com/photo-1489944444114-3f2b8a4d7b19?w=1920&q=60"); animation-delay: 0s; }
+.slideshow .slide:nth-child(2)  { background-image: url("https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=1920&q=60"); animation-delay: 2s; }
+.slideshow .slide:nth-child(3)  { background-image: url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1920&q=60"); animation-delay: 4s; }
+.slideshow .slide:nth-child(4)  { background-image: url("https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=1920&q=60"); animation-delay: 6s; }
+.slideshow .slide:nth-child(5)  { background-image: url("https://images.unsplash.com/photo-1522778112-717a0cc2d425?w=1920&q=60"); animation-delay: 8s; }
+.slideshow .slide:nth-child(6)  { background-image: url("https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1920&q=60"); animation-delay: 10s; }
+.slideshow .slide:nth-child(7)  { background-image: url("https://images.unsplash.com/photo-1543322740-7c0d7b40e8f6?w=1920&q=60"); animation-delay: 12s; }
+.slideshow .slide:nth-child(8)  { background-image: url("https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=1920&q=60"); animation-delay: 14s; }
+.slideshow .slide:nth-child(9)  { background-image: url("https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1920&q=60"); animation-delay: 16s; }
+.slideshow .slide:nth-child(10) { background-image: url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1920&q=60"); animation-delay: 18s; }
+@keyframes crossfade {
+  0%, 7%   { opacity: 0.09; }
+  10%, 98% { opacity: 0; }
+  100%     { opacity: 0; }
+}
+.slideshow::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+}
 .pl__ring { animation: ringA 2s linear infinite; }
 .pl__ring--a { stroke: #f42f25; }
 .pl__ring--b { animation-name: ringB; stroke: #f49725; }
@@ -208,6 +232,13 @@ export default function Landing() {
           <circle className="pl__ring pl__ring--c" cx="100" cy="100" r="82" />
           <circle className="pl__ring pl__ring--d" cx="100" cy="100" r="82" />
         </svg>
+      </div>
+
+      {/* Slideshow background */}
+      <div className="slideshow">
+        <div className="slide" /><div className="slide" /><div className="slide" /><div className="slide" />
+        <div className="slide" /><div className="slide" /><div className="slide" /><div className="slide" />
+        <div className="slide" /><div className="slide" />
       </div>
 
       <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-purple-500/20 bg-gradient-to-r from-gray-900/95 via-purple-950/95 to-blue-950/95 backdrop-blur-md">
